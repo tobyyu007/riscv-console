@@ -19,9 +19,9 @@ int main() {
     int b = 12;
     int last_global = 42;
     int x_pos = 12;
-    char *Buffer = malloc(32);
-    strcpy(Buffer, "Hello World!X");
-    strcpy((char *)VIDEO_MEMORY, Buffer);
+    // char *Buffer = malloc(32);
+    // strcpy(Buffer, "Hello World!X");
+    // strcpy((char *)VIDEO_MEMORY, Buffer);
     // VIDEO_MEMORY[0] = 'H';
     // VIDEO_MEMORY[1] = 'e';
     // VIDEO_MEMORY[2] = 'l';
@@ -49,8 +49,8 @@ int main() {
         }
     }
     MEDIUM_PALETTE[1] = 0xFFFF00FF; // A R G B
-    // MEDIUM_CONTROL[0] = MediumControl(0, 0, 0, 0, 0);
-    *MODE_REGISTER = 0; // 0: text mode/ 1: graphic mode 
+    MEDIUM_CONTROL[0] = MediumControl(0, 0, 0, 0, 0);
+    *MODE_REGISTER = 1; // 0: text mode/ 1: graphic mode 
     while (1) {
         int c = a + b + global;
         if(global != last_global){
@@ -76,8 +76,8 @@ int main() {
                         x_pos++;
                     }
                 }
-                VIDEO_MEMORY[x_pos] = 'X';
-                // MEDIUM_CONTROL[0] = MediumControl(0, (x_pos & 0x3F)<<3, (x_pos>>6)<<3, 0, 0);
+                //VIDEO_MEMORY[x_pos] = 'X';
+                MEDIUM_CONTROL[0] = MediumControl(0, (x_pos & 0x3F)<<3, (x_pos>>6)<<3, 0, 0);
             }
             last_global = global;
         }

@@ -1,6 +1,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
+
 volatile int global = 42;
 volatile uint32_t controller_status = 0;
 
@@ -29,6 +31,12 @@ int main() {
     strcpy(Buffer, "OS Started");
     strcpy((char *)VIDEO_MEMORY, Buffer);
     free(Buffer);
+    Buffer = NULL;
+    if(Buffer == NULL){
+        char *Buffer2 = malloc(32);
+        strcpy(Buffer2, "Freed");
+        strcpy((char *)VIDEO_MEMORY, Buffer2);
+    }
     // VIDEO_MEMORY[0] = 'H';
     // VIDEO_MEMORY[1] = 'e';
     // VIDEO_MEMORY[2] = 'l';
