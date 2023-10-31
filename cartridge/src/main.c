@@ -18,7 +18,7 @@ int main() {
     int a = 4;
     int b = 12;
     int last_global = 42;
-    int x_pos = 12;
+    int x_pos = 0;
     // char *Buffer = malloc(32);
     // strcpy(Buffer, "Hello World!X");
     // strcpy((char *)VIDEO_MEMORY, Buffer);
@@ -85,7 +85,7 @@ int main() {
         if(!countdown){
             global++;
             controller_status = (*((volatile uint32_t *)0x40000018));
-            countdown = 100000;
+            countdown = 10000;
         }
     }
     return 0;
