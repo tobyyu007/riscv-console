@@ -5,12 +5,18 @@ volatile int global = 42;
 volatile uint32_t controller_status = 0;
 
 volatile char *VIDEO_MEMORY = (volatile char *)(0x50000000 + 0xF4800);
-volatile uint8_t *MEDIUM_DATA = (volatile uint8_t *)(0x500D0000);
-volatile uint32_t *MEDIUM_PALETTE = (volatile uint32_t *)(0x500F2000);
+volatile uint8_t *MEDIUM_DATA_SQUARE = (volatile uint8_t *)(0x500D0000);
+volatile uint8_t *MEDIUM_DATA_CIRCLE = (volatile uint8_t *)(0x500D0400);
+volatile uint32_t *MEDIUM_PALETTE_PINK = (volatile uint32_t *)(0x500F2000);
+volatile uint32_t *MEDIUM_PALETTE_WHITE = (volatile uint32_t *)(0x500F2400);
 volatile uint32_t *MEDIUM_CONTROL = (volatile uint32_t *)(0x500F5F00);
 volatile uint32_t *MODE_REGISTER = (volatile uint32_t *)(0x500F6780);
+volatile uint32_t *INTERRUPT_PENDING_REGISTER = (volatile uint32_t * )(0x40000004);
+volatile uint32_t *INTERRUPT_ENABLE_REGISTER = (volatile uint32_t *)(0x40000000);
 
 uint32_t MediumControl(uint8_t palette, int16_t x, int16_t y, uint8_t z, uint8_t index);
+
+#define CMIE_BIT 2
 
 int main() {
     int countdown = 1;
@@ -19,42 +25,62 @@ int main() {
     int b = 12;
     int last_global = 42;
     int x_pos = 0;
-    // char *Buffer = malloc(32);
-    // strcpy(Buffer, "Hello World!X");
-    // strcpy((char *)VIDEO_MEMORY, Buffer);
-    // VIDEO_MEMORY[0] = 'H';
-    // VIDEO_MEMORY[1] = 'e';
-    // VIDEO_MEMORY[2] = 'l';
-    // VIDEO_MEMORY[3] = 'l';
-    // VIDEO_MEMORY[4] = 'o';
-    // VIDEO_MEMORY[5] = ' ';
-    // VIDEO_MEMORY[6] = 'W';
-    // VIDEO_MEMORY[7] = 'o';
-    // VIDEO_MEMORY[8] = 'r';
-    // VIDEO_MEMORY[9] = 'l';
-    // VIDEO_MEMORY[10] = 'd';
-    // VIDEO_MEMORY[11] = '!';
-    // VIDEO_MEMORY[12] = 'X';
 
-    // Fill out sprite data
+    // Fill out square data
     for(int y = 0; y < 32; y++){
         for(int x = 0; x < 32; x++){
             if(y%2==0){
-                if(x%2==0) MEDIUM_DATA[y*32+x] = 1;
+                if(x%2==0) MEDIUM_DATA_SQUARE[y*32+x] = 1;
             }
             else{
-                if(x%2==1) MEDIUM_DATA[y*32+x] = 1;
+                if(x%2==1) MEDIUM_DATA_SQUARE[y*32+x] = 1;
             }
             
         }
     }
-    MEDIUM_PALETTE[1] = 0xFFFF00FF; // A R G B
-    MEDIUM_CONTROL[0] = MediumControl(0, 0, 0, 0, 0);
-    *MODE_REGISTER = 1; // 0: text mode/ 1: graphic mode 
+
+    // Fill out circle data
+    int centerX = 16;  // X-coordinate of the center of the circle
+    int centerY = 16;  // Y-coordinate of the center of the circle
+    int radius = 12;   // Radius of the circle
+
+    for (int y = 0; y < 32; y++) {
+        for (int x = 0; x < 32; x++) {
+            int dx = x - centerX;
+            int dy = y - centerY;
+            int distance = dx * dx + dy * dy; // Calculate squared distance to the center
+
+            if (distance <= radius * radius) {
+                MEDIUM_DATA_CIRCLE[y * 32 + x] = 1; // Set pixel to 1 if it's inside the circle
+            } else {
+                MEDIUM_DATA_CIRCLE[y * 32 + x] = 0; // Set pixel to 0 if it's outside the circle
+            }
+        }
+    }
+
+    MEDIUM_PALETTE_PINK[1] = 0xFFFF00FF; // A R G B
+    MEDIUM_PALETTE_WHITE[1] = 0xFFFFFFFF; // A R G B
+    MEDIUM_CONTROL[0] = MediumControl(0, 0, 0, 0, 0);  // Square
+    *MODE_REGISTER = 1; // 0: text mode/ 1: graphic mode
+    int currentIndex = 0;
     while (1) {
         int c = a + b + global;
+        *INTERRUPT_PENDING_REGISTER &= 0x00;  // Enable VIP Pending
+        if(*INTERRUPT_PENDING_REGISTER & (1 << CMIE_BIT)){
+            if (currentIndex == 0){
+                MEDIUM_CONTROL[0] = MediumControl(1, (x_pos & 0x3F)<<3, (x_pos>>6)<<3, 0, 1);
+                currentIndex = 1;
+            }
+            else{
+                MEDIUM_CONTROL[0] = MediumControl(0, (x_pos & 0x3F)<<3, (x_pos>>6)<<3, 0, 0);
+                currentIndex = 0;
+            }
+            *INTERRUPT_PENDING_REGISTER |= (1 << CMIE_BIT);
+        }
+
         if(global != last_global){
             if(controller_status){
+                
                 VIDEO_MEMORY[x_pos] = ' ';
                 if(controller_status & 0x1){
                     if(x_pos & 0x3F){
@@ -76,8 +102,12 @@ int main() {
                         x_pos++;
                     }
                 }
-                //VIDEO_MEMORY[x_pos] = 'X';
-                MEDIUM_CONTROL[0] = MediumControl(0, (x_pos & 0x3F)<<3, (x_pos>>6)<<3, 0, 0);
+                if (currentIndex == 1){
+                    MEDIUM_CONTROL[0] = MediumControl(1, (x_pos & 0x3F)<<3, (x_pos>>6)<<3, 0, 1);
+                }
+                else{
+                    MEDIUM_CONTROL[0] = MediumControl(0, (x_pos & 0x3F)<<3, (x_pos>>6)<<3, 0, 0);
+                }
             }
             last_global = global;
         }
@@ -87,6 +117,7 @@ int main() {
             controller_status = (*((volatile uint32_t *)0x40000018));
             countdown = 10000;
         }
+        *INTERRUPT_PENDING_REGISTER &= 0x02;  // Disable VIP Pending
     }
     return 0;
 }

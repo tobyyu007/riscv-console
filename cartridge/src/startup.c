@@ -36,6 +36,7 @@ __attribute__((always_inline)) inline void csr_disable_interrupts(void){
 #define MTIMECMP_LOW    (*((volatile uint32_t *)0x40000010))
 #define MTIMECMP_HIGH   (*((volatile uint32_t *)0x40000014))
 #define CONTROLLER      (*((volatile uint32_t *)0x40000018))
+#define INTERRUPT_ENABLE_REGISTER (*((volatile uint32_t *)0x40000000))
 
 void init(void){
     uint8_t *Source = _erodata;

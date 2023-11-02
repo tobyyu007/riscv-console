@@ -36,6 +36,11 @@ __attribute__((always_inline)) inline void csr_disable_interrupts(void){
 #define MTIMECMP_LOW    (*((volatile uint32_t *)0x40000010))
 #define MTIMECMP_HIGH   (*((volatile uint32_t *)0x40000014))
 #define CONTROLLER      (*((volatile uint32_t *)0x40000018))
+#define INTERRUPT_ENABLE_REGISTER (*((volatile uint32_t *)0x40000000))
+#define INTERRUPT_PENDING_REGISTER (*((volatile uint32_t *)0x40000004))
+
+#define VIE_BIT 1
+#define CMIE_BIT 2
 
 void init(void){
     uint8_t *Source = _erodata;
@@ -55,6 +60,10 @@ void init(void){
     csr_enable_interrupts();    // Global interrupt enable
     MTIMECMP_LOW = 1;
     MTIMECMP_HIGH = 0;
+
+    // INTERRUPT_ENABLE_REGISTER |= (1 << VIE_BIT) | (1 << CMIE_BIT);
+    INTERRUPT_ENABLE_REGISTER |= (1 << CMIE_BIT);
+
 }
 
 extern volatile int global;
@@ -67,5 +76,7 @@ void c_interrupt_handler(void){
     MTIMECMP_LOW = NewCompare;
     global++;
     controller_status = CONTROLLER;
+
+    INTERRUPT_PENDING_REGISTER |= 0x02;  // Disable the VIP bit
 }
 
