@@ -65,7 +65,7 @@ int main() {
     int currentIndex = 0;
     while (1) {
         int c = a + b + global;
-        *INTERRUPT_PENDING_REGISTER &= 0x00;  // Enable VIP Pending
+        // *INTERRUPT_PENDING_REGISTER &= 0x00;  // Enable VIP Pending
         if(*INTERRUPT_PENDING_REGISTER & (1 << CMIE_BIT)){
             if (currentIndex == 0){
                 MEDIUM_CONTROL[0] = MediumControl(1, (x_pos & 0x3F)<<3, (x_pos>>6)<<3, 0, 1);
@@ -115,9 +115,9 @@ int main() {
         if(!countdown){
             global++;
             controller_status = (*((volatile uint32_t *)0x40000018));
-            countdown = 10000;
+            countdown = 1000;
         }
-        *INTERRUPT_PENDING_REGISTER &= 0x02;  // Disable VIP Pending
+        // *INTERRUPT_PENDING_REGISTER &= 0x02;  // Disable VIP Pending
     }
     return 0;
 }
