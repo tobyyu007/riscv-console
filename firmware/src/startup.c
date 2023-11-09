@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stddef.h>
 
 extern uint8_t _erodata[];
 extern uint8_t _data[];
@@ -81,6 +82,47 @@ void c_interrupt_handler(void){
         INTERRUPT_PENDING_REGISTER |= (1 << VIE_BIT);
     }
     controller_status = CONTROLLER;
+
+}
+
+typedef uint32_t *TThreadContext;
+
+typedef void (*TThreadEntry)(void *);
+
+
+TThreadContext InitThread(uint32_t *stacktop, TThreadEntry entry,void *param);
+void SwitchThread(TThreadContext *oldcontext, TThreadContext newcontext);
+
+TThreadContext MainThread;
+TThreadContext OtherThread;
+void OtherThreadFunction(void *){
+    int last_global = global;
+    while(1){
+        if(global != last_global){
+            SwitchThread(&OtherThread,MainThread);
+            last_global = global;
+        }
+    }
+}
+
+uint32_t c_system_call(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg3, uint32_t arg4, uint32_t call){
+    if(1 == call){
+        return global;
+    }
+    else if(2 == call){
+        return controller_status;
+    }
+    else if(3 == call){
+        uint32_t OtherThreadStack[128];
+        MainThread = InitThread(OtherThreadStack + 128, OtherThreadFunction, NULL);
+        return *MainThread;
+    }
+    else if(4 == call){
+        OtherThread = &arg0;
+        SwitchThread(&MainThread,OtherThread);
+        return 1;
+    }
+    return -1;
 
 }
 
