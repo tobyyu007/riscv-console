@@ -122,6 +122,43 @@ uint32_t c_system_call(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg
         SwitchThread(&MainThread,OtherThread);
         return 1;
     }
+    else if(5 == call){  // checkControllerStatus()
+        volatile uint32_t controller_status = (*((volatile uint32_t *)0x40000018));
+        return controller_status ? 1 : 0;
+    }
+    else if(6 == call){ // DirectionPadLeft()
+        volatile uint32_t controller_status = (*((volatile uint32_t *)0x40000018));
+        return (controller_status & 0x1) ? 1 : 0;
+    }
+    else if(7 == call){ // DirectionPadUp()
+        volatile uint32_t controller_status = (*((volatile uint32_t *)0x40000018));
+        return (controller_status & 0x2) ? 1 : 0;
+    }
+    else if(8 == call){ // DirectionPadDown()
+        volatile uint32_t controller_status = (*((volatile uint32_t *)0x40000018));
+        return (controller_status & 0x4) ? 1 : 0;
+    }
+    else if(9 == call){ // DirectionPadRight()
+        volatile uint32_t controller_status = (*((volatile uint32_t *)0x40000018));
+        return (controller_status & 0x8) ? 1 : 0;
+    }
+    else if(10 == call){ // ToggleButtonsUp()
+        volatile uint32_t controller_status = (*((volatile uint32_t *)0x40000018));
+        return (controller_status & 0x10) ? 1 : 0;
+    }
+    else if(11 == call){ // ToggleButtonsRight()
+        volatile uint32_t controller_status = (*((volatile uint32_t *)0x40000018));
+        return (controller_status & 0x20) ? 1 : 0;
+    }
+    else if(12 == call){ // ToggleButtonsLeft()
+        volatile uint32_t controller_status = (*((volatile uint32_t *)0x40000018));
+        return (controller_status & 0x40) ? 1 : 0;
+    }
+    else if(13 == call){ // ToggleButtonsDown()
+        volatile uint32_t controller_status = (*((volatile uint32_t *)0x40000018));
+        return (controller_status & 0x80) ? 1 : 0;
+    }
+
     return -1;
 
 }

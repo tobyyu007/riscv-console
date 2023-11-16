@@ -1,5 +1,5 @@
 .section .text, "ax"
-.global _interrupt_handler, GetTicks, GetController, InitThread, SwitchThread
+.global _interrupt_handler, GetTicks, GetController, InitThread, SwitchThread, checkControllerStatus, DirectionPadLeft, DirectionPadUp, DirectionPadDown, DirectionPadRight, ToggleButtonsUp, ToggleButtonsRight, ToggleButtonsLeft, ToggleButtonsDown
 _interrupt_handler:
     addi	sp,sp,-40
     sw	    ra,36(sp)
@@ -37,4 +37,31 @@ InitThread:
     ecall
 SwitchThread:
     li a5, 4
+    ecall
+checkControllerStatus:
+    li a5, 5
+    ecall
+DirectionPadLeft:
+    li a5, 6
+    ecall
+DirectionPadUp:
+    li a5, 7
+    ecall
+DirectionPadDown:
+    li a5, 8
+    ecall
+DirectionPadRight:
+    li a5, 9
+    ecall
+ToggleButtonsUp:
+    li a5, 10
+    ecall
+ToggleButtonsRight:
+    li a5, 11
+    ecall
+ToggleButtonsLeft:
+    li a5, 12
+    ecall
+ToggleButtonsDown:
+    li a5, 13
     ecall

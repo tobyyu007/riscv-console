@@ -2,8 +2,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdbool.h>
+#include <event.h>
+
 volatile int global = 42;
-volatile uint32_t controller_status = 0;
+//volatile uint32_t controller_status = 0;
+bool controller_status = false;
 uint32_t GetTicks(void);
 uint32_t GetController(void);
 uint32_t InitThread(void);
@@ -54,24 +58,25 @@ int main() {
 
         if(global != last_global){
             if(controller_status){
-                
                 VIDEO_MEMORY[x_pos] = ' ';
-                if(controller_status & 0x1){
+
+                if(checkTriggerDirection(DirectionPad, DirectionLeft)){  // Left
                     if(x_pos & 0x3F){
                         x_pos--;
                     }
                 }
-                if(controller_status & 0x2){
+
+                if(checkTriggerDirection(DirectionPad, DirectionUp)){  // Up
                     if(x_pos >= 0x40){
                         x_pos -= 0x40;
                     }
                 }
-                if(controller_status & 0x4){
+                if(checkTriggerDirection(DirectionPad, DirectionDown)){  // Down
                     if(x_pos < 0x8C0){
                         x_pos += 0x40;
                     }
                 }
-                if(controller_status & 0x8){
+                if(checkTriggerDirection(DirectionPad, DirectionRight)){  // Right
                     if((x_pos & 0x3F) != 0x3F){
                         x_pos++;
                     }
@@ -83,17 +88,29 @@ int main() {
                     MEDIUM_CONTROL[0] = MediumControl(0, (x_pos & 0x3F)<<3, (x_pos>>6)<<3, 0, 0);
                 }
 
-                if(controller_status & 0x10){
-                    thread_addr = InitThread();
-                    
-                    MEDIUM_CONTROL[0] = MediumControl(1, (x_pos & 0x3F)<<3, (x_pos>>6)<<3, 0, 1);
-                    
+                if(checkTriggerDirection(ToggleButtons, DirectionUp)){  // u button
+                    // thread_addr = InitThread();
+                    // MEDIUM_CONTROL[0] = MediumControl(1, (x_pos & 0x3F)<<3, (x_pos>>6)<<3, 0, 1);
+                    if(x_pos >= 0x40){
+                        x_pos -= 0x40;
+                    }
                 }
-                if(controller_status & 0x20){
-                    uint32_t thread_id = SwitchThread(thread_addr);
-                    
-                    MEDIUM_CONTROL[0] = MediumControl(0, (x_pos & 0x3F)<<3, (x_pos>>6)<<3, 0, 0);
-                    
+                if(checkTriggerDirection(ToggleButtons, DirectionRight)){  // i button
+                    // uint32_t thread_id = SwitchThread(thread_addr);
+                    // MEDIUM_CONTROL[0] = MediumControl(0, (x_pos & 0x3F)<<3, (x_pos>>6)<<3, 0, 0);
+                    if((x_pos & 0x3F) != 0x3F){
+                        x_pos++;
+                    }
+                }
+                if(checkTriggerDirection(ToggleButtons, DirectionLeft)){  // j button
+                    if(x_pos & 0x3F){
+                        x_pos--;
+                    }
+                }
+                if(checkTriggerDirection(ToggleButtons, DirectionDown)){  // k button
+                    if(x_pos < 0x8C0){
+                        x_pos += 0x40;
+                    }
                 }
             }
             last_global = global;
@@ -101,8 +118,8 @@ int main() {
         countdown--;
         if(!countdown){
             global++;
-            controller_status = (*((volatile uint32_t *)0x40000018));
-            countdown = 1000;
+            controller_status = eventTriggered();
+            countdown = 10000;
         }
         // *INTERRUPT_PENDING_REGISTER &= 0x02;  // Disable VIP Pending
     }
