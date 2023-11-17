@@ -10,9 +10,9 @@ volatile char *VIDEO_MEMORY = (volatile char *)(0x50000000 + 0xF4800);
 volatile uint32_t *CartridgeStatus = (volatile uint32_t *)(0x4000001C);
 typedef void(*FunctionPtr)(void);
 extern volatile uint32_t video_interrupt_count;
-volatile uint32_t *MODE_REGISTER = (volatile uint32_t *)(0x500F6780);
+volatile uint32_t *GRAPHICS_MODE = (volatile uint32_t *)(0x500F6780);
 
-uint32_t MediumControl(uint8_t palette, int16_t x, int16_t y, uint8_t z, uint8_t index);
+uint32_t setLargeGraphicObject(uint8_t palette, int16_t x, int16_t y, uint8_t z, uint8_t index);
 
 
 int main() {
@@ -23,7 +23,7 @@ int main() {
     char *Buffer = malloc(32);
     strcpy(Buffer, "OS Started");
     strcpy((char *)VIDEO_MEMORY, Buffer);
-    *MODE_REGISTER = 0; // 0: text mode/ 1: graphic mode 
+    *GRAPHICS_MODE = 0; // 0: text mode/ 1: graphic mode 
     while (1) {
         if(*CartridgeStatus & 0x1){
             FunctionPtr Fun = (FunctionPtr)((*CartridgeStatus) & 0xFFFFFFFC);
@@ -35,7 +35,7 @@ int main() {
     return 0;
 }
 
-uint32_t MediumControl(uint8_t palette, int16_t x, int16_t y, uint8_t z, uint8_t index){
+uint32_t setLargeGraphicObject(uint8_t palette, int16_t x, int16_t y, uint8_t z, uint8_t index){
     return (((uint32_t)index)<<24) | (((uint32_t)z)<<21) | (((uint32_t)y+32)<<12) | (((uint32_t)x+32)<<2) | (palette & 0x3);
 }
 

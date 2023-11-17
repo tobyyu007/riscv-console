@@ -7,160 +7,218 @@
 
 volatile int global = 42;
 
-volatile uint8_t *MEDIUM_DATA_SQUARE = (volatile uint8_t *)(0x500D0000);
-volatile uint8_t *MEDIUM_DATA_CIRCLE = (volatile uint8_t *)(0x500D0400);
-volatile uint32_t *MEDIUM_PALETTE_PINK = (volatile uint32_t *)(0x500F2000);
-volatile uint32_t *MEDIUM_PALETTE_WHITE = (volatile uint32_t *)(0x500F2400);
-volatile uint32_t *MEDIUM_CONTROL = (volatile uint32_t *)(0x500F5F00);
-volatile uint32_t *MODE_REGISTER = (volatile uint32_t *)(0x500F6780);
+// Palettes
+volatile uint32_t *largePaletteWhite = (volatile uint32_t *)(0x500F1000);
+volatile uint32_t *largePaletteOrange = (volatile uint32_t *)(0x500F1400);
 
-uint32_t MediumControl(uint8_t palette, int16_t x, int16_t y, uint8_t z, uint8_t index);
+// Canvas
+volatile uint8_t *player1RectangleCanvas = (volatile uint8_t *)(0x50090000);
+volatile uint8_t *player2RectangleCanvas = (volatile uint8_t *)(0x50091000);
+volatile uint8_t *pingPongBallCanvas = (volatile uint8_t *)(0x50092000);
 
-uint32_t thread_addr;
+// Objects
+volatile uint32_t *player1BatObject = (volatile uint32_t *)(0x500F5B00);
+volatile uint32_t *player2BatObject = (volatile uint32_t *)(0x500F5B04);
+volatile uint32_t *pingPongBallObject = (volatile uint32_t *)(0x500F5B08);
 
-void fillOutData();
-int main() {
+// Graphic setting
+volatile uint32_t *GRAPHICS_MODE = (volatile uint32_t *)(0x500F6780);
+
+// Screen Resolution
+int xPosMax = 512;
+int yPosMax = 288;
+
+// Rectangle size
+int rectangleHeight = 64; // Height of the rectangle
+int rectangleWidth = 8;   // Width of the rectangle
+
+// Ball size
+int ballRadius = 16;
+
+uint32_t setLargeGraphicObject(uint8_t palette, int16_t x, int16_t y, uint8_t z, uint8_t canvasIndex);
+uint32_t setMediumGraphicObject(uint8_t palette, int16_t x, int16_t y, uint8_t z, uint8_t canvasIndex);
+void createGraphicObject();
+
+int main()
+{
     int countdown = 1;
     int last_global = 42;
-    int x_pos = 0;
-    fillOutData();
-    MEDIUM_PALETTE_PINK[1] = 0xFFFF00FF; // A R G B
-    MEDIUM_PALETTE_WHITE[1] = 0xFFFFFFFF; // A R G B
-    MEDIUM_CONTROL[0] = MediumControl(0, 0, 0, 0, 0);  // Square
-    *MODE_REGISTER = 1; // 0: text mode/ 1: graphic mode
-    int currentIndex = 0;
+    int batXOffset = 20;  // Offset for the bat in the X axis
+    int player1X = 0 + batXOffset;
+    int player1Y = yPosMax / 2 - rectangleHeight / 2;
+    int player2X = xPosMax - rectangleWidth - batXOffset;
+    int player2Y = yPosMax / 2 - rectangleHeight / 2;
+    int pingPongX = xPosMax/2;
+    int pingPongY = yPosMax/2;
+    *GRAPHICS_MODE = 1; // 0: text mode/ 1: graphic mode
 
-    while (1) {
-        enableCMDInterrupt();
-        if(CMDPressed()){
-            if (currentIndex == 0){
-                MEDIUM_CONTROL[0] = MediumControl(1, (x_pos & 0x3F)<<3, (x_pos>>6)<<3, 0, 1);
-                currentIndex = 1;
-            }
-            else{
-                MEDIUM_CONTROL[0] = MediumControl(0, (x_pos & 0x3F)<<3, (x_pos>>6)<<3, 0, 0);
-                currentIndex = 0;
-            }
-            disableCMDInterrupt();
-        }
+    largePaletteWhite[1] = 0xFFFFFFFF;   // A R G B
+    largePaletteOrange[1] = 0xFFF05E1C; // A R G B
 
-        if(global != last_global){
-            if(controllerEventTriggered()){
+    createGraphicObject();
 
-                if(checkDirectionTrigger(DirectionPad, DirectionLeft)){  // Left
-                    if(x_pos & 0x3F){
-                        x_pos--;
-                    }
-                }
+    player1BatObject[0] = setLargeGraphicObject(0, player1X, player1Y, 0, 0); // Player 1
+    player2BatObject[0] = setLargeGraphicObject(0, player2X, player2Y, 0, 1); // Player 2
+    pingPongBallObject[0] = setLargeGraphicObject(1, xPosMax/2-ballRadius*2, yPosMax/2-ballRadius*2, 0, 2); // Ping Pong Ball
 
-                if(checkDirectionTrigger(DirectionPad, DirectionUp)){  // Up
-                    if(x_pos >= 0x40){
-                        x_pos -= 0x40;
+    while (1)
+    {
+        if (global != last_global)
+        {
+            if (controllerEventTriggered())
+            {
+
+                if (checkDirectionTrigger(DirectionPad, DirectionLeft))
+                { // Left
+                    if (player1X > 0)
+                    {
+                        player1X--;
                     }
-                }
-                if(checkDirectionTrigger(DirectionPad, DirectionDown)){  // Down
-                    if(x_pos < 0x8C0){
-                        x_pos += 0x40;
-                    }
-                }
-                if(checkDirectionTrigger(DirectionPad, DirectionRight)){  // Right
-                    if((x_pos & 0x3F) != 0x3F){
-                        x_pos++;
-                    }
-                }
-                if (currentIndex == 1){
-                    MEDIUM_CONTROL[0] = MediumControl(1, (x_pos & 0x3F)<<3, (x_pos>>6)<<3, 0, 1);
-                }
-                else{
-                    MEDIUM_CONTROL[0] = MediumControl(0, (x_pos & 0x3F)<<3, (x_pos>>6)<<3, 0, 0);
                 }
 
-                if(checkDirectionTrigger(ToggleButtons, DirectionUp)){  // u button
-                    if(x_pos >= 0x40){
-                        x_pos -= 0x40;
+                if (checkDirectionTrigger(DirectionPad, DirectionUp))
+                { // Up
+                    if (player1Y > 0)
+                    {
+                        player1Y -= 1;
                     }
                 }
-                if(checkDirectionTrigger(ToggleButtons, DirectionRight)){  // i button
-                    if((x_pos & 0x3F) != 0x3F){
-                        x_pos++;
+                if (checkDirectionTrigger(DirectionPad, DirectionDown))
+                { // Down
+                    if (player1Y + rectangleHeight < yPosMax)
+                    {
+                        player1Y += 1;
                     }
                 }
-                if(checkDirectionTrigger(ToggleButtons, DirectionLeft)){  // j button
-                    if(x_pos & 0x3F){
-                        x_pos--;
+                if (checkDirectionTrigger(DirectionPad, DirectionRight))
+                { // Right
+                    if (player1X + rectangleWidth < xPosMax)
+                    {
+                        player1X++;
                     }
                 }
-                if(checkDirectionTrigger(ToggleButtons, DirectionDown)){  // k button
-                    if(x_pos < 0x8C0){
-                        x_pos += 0x40;
+
+                if (checkDirectionTrigger(ToggleButtons, DirectionUp))
+                { // u button (Up)
+                    if (player2Y > 0)
+                    {
+                        player2Y -= 1;
                     }
                 }
+                if (checkDirectionTrigger(ToggleButtons, DirectionRight))
+                { // i button (Right)
+                    if (player2X + rectangleWidth < xPosMax)
+                    {
+                        player2X++;
+                    }
+                }
+                if (checkDirectionTrigger(ToggleButtons, DirectionLeft))
+                { // j button (Left)
+                    if (player2X > 0)
+                    {
+                        player2X--;
+                    }
+                }
+                if (checkDirectionTrigger(ToggleButtons, DirectionDown))
+                { // k button (Down)
+                    if (player2Y + rectangleHeight < yPosMax)
+                    {
+                        player2Y += 1;
+                    }
+                }
+
+                player1BatObject[0] = setLargeGraphicObject(0, player1X, player1Y, 0, 0);
+                player2BatObject[0] = setLargeGraphicObject(0, player2X, player2Y, 0, 1);
             }
             last_global = global;
         }
         countdown--;
-        if(!countdown){
+        if (!countdown)
+        {
             global++;
-            countdown = 5000;
+            countdown = 10000;
         }
     }
     return 0;
 }
 
-uint32_t MediumControl(uint8_t palette, int16_t x, int16_t y, uint8_t z, uint8_t index){
-    return (((uint32_t)index)<<24) | (((uint32_t)z)<<21) | (((uint32_t)y+32)<<12) | (((uint32_t)x+32)<<2) | (palette & 0x3);
+uint32_t setLargeGraphicObject(uint8_t palette, int16_t x, int16_t y, uint8_t z, uint8_t canvasIndex)
+{
+    // Look at the upper left for starting anchor
+    return (((uint32_t)canvasIndex) << 24) | (((uint32_t)z) << 21) | (((uint32_t)y + 64) << 12) | (((uint32_t)x + 64) << 2) | (palette & 0x3);
+}
+
+uint32_t setMediumGraphicObject(uint8_t palette, int16_t x, int16_t y, uint8_t z, uint8_t canvasIndex)
+{
+    // Look at the upper left for starting anchor
+    return (((uint32_t)canvasIndex) << 24) | (((uint32_t)z) << 21) | (((uint32_t)y + 32) << 12) | (((uint32_t)x + 32) << 2) | (palette & 0x3);
 }
 
 extern char _heap_base[];
 extern char _stack[];
 
-char *_sbrk(int numbytes){
+char *_sbrk(int numbytes)
+{
     static char *heap_ptr = NULL;
     char *base;
-    if(heap_ptr == NULL){
-        heap_ptr = (char *)& _heap_base;
+    if (heap_ptr == NULL)
+    {
+        heap_ptr = (char *)&_heap_base;
     }
 
-    if((heap_ptr + numbytes) <= _stack){
+    if ((heap_ptr + numbytes) <= _stack)
+    {
         base = heap_ptr;
         heap_ptr += numbytes;
         return (base);
     }
-    else{
-        //erro = ENOMEM;
+    else
+    {
+        // erro = ENOMEM;
         return NULL;
     }
 }
 
-void fillOutData(){
-    // Fill out square data
-    for(int y = 0; y < 32; y++){
-        for(int x = 0; x < 32; x++){
-            if(y%2==0){
-                if(x%2==0) MEDIUM_DATA_SQUARE[y*32+x] = 1;
-            }
-            else{
-                if(x%2==1) MEDIUM_DATA_SQUARE[y*32+x] = 1;
-            }
-            
+void createGraphicObject()
+{
+    // Fill out Player 1 Rectangle data
+    for (int y = 0; y < rectangleHeight; y++) // Iterate over the height of the rectangle
+    {
+        for (int x = 0; x < rectangleWidth; x++) // Iterate over the width of the rectangle
+        {
+            player1RectangleCanvas[y * 64 + x] = 1;
+        }
+    }
+
+    // Fill out Player 2 Rectangle data
+    for (int y = 0; y < rectangleHeight; y++) // Iterate over the height of the rectangle
+    {
+        for (int x = 0; x < rectangleWidth; x++) // Iterate over the width of the rectangle
+        {
+            player2RectangleCanvas[y * 64 + x] = 1;
         }
     }
 
     // Fill out circle data
-    int centerX = 16;  // X-coordinate of the center of the circle
-    int centerY = 16;  // Y-coordinate of the center of the circle
-    int radius = 12;   // Radius of the circle
+    int centerX = 32; // X-coordinate of the center of the circle
+    int centerY = 32; // Y-coordinate of the center of the circle
+    int ballRadius = 12;  // Radius of the circle
 
-    for (int y = 0; y < 32; y++) {
-        for (int x = 0; x < 32; x++) {
+    for (int y = 0; y < 64; y++)
+    {
+        for (int x = 0; x < 64; x++)
+        {
             int dx = x - centerX;
             int dy = y - centerY;
             int distance = dx * dx + dy * dy; // Calculate squared distance to the center
 
-            if (distance <= radius * radius) {
-                MEDIUM_DATA_CIRCLE[y * 32 + x] = 1; // Set pixel to 1 if it's inside the circle
-            } else {
-                MEDIUM_DATA_CIRCLE[y * 32 + x] = 0; // Set pixel to 0 if it's outside the circle
+            if (distance <= ballRadius * ballRadius)
+            {
+                pingPongBallCanvas[y * 64 + x] = 1; // Set pixel to 1 if it's inside the circle
+            }
+            else
+            {
+                pingPongBallCanvas[y * 64 + x] = 0; // Set pixel to 0 if it's outside the circle
             }
         }
     }
