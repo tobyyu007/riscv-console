@@ -44,7 +44,8 @@ int main() {
 
     while (1) {
         int c = a + b + global;
-        if(*INTERRUPT_PENDING_REGISTER & (1 << CMIE_BIT)){
+        enableCMDInterrupt();
+        if(CMDPressed()){
             if (currentIndex == 0){
                 MEDIUM_CONTROL[0] = MediumControl(1, (x_pos & 0x3F)<<3, (x_pos>>6)<<3, 0, 1);
                 currentIndex = 1;
@@ -53,30 +54,30 @@ int main() {
                 MEDIUM_CONTROL[0] = MediumControl(0, (x_pos & 0x3F)<<3, (x_pos>>6)<<3, 0, 0);
                 currentIndex = 0;
             }
-            *INTERRUPT_PENDING_REGISTER |= (1 << CMIE_BIT);
+            disableCMDInterrupt();
         }
 
         if(global != last_global){
-            if(controller_status){
-                VIDEO_MEMORY[x_pos] = ' ';
+            if(controllerEventTriggered()){
+                //VIDEO_MEMORY[x_pos] = ' ';
 
-                if(checkTriggerDirection(DirectionPad, DirectionLeft)){  // Left
+                if(checkDirectionTrigger(DirectionPad, DirectionLeft)){  // Left
                     if(x_pos & 0x3F){
                         x_pos--;
                     }
                 }
 
-                if(checkTriggerDirection(DirectionPad, DirectionUp)){  // Up
+                if(checkDirectionTrigger(DirectionPad, DirectionUp)){  // Up
                     if(x_pos >= 0x40){
                         x_pos -= 0x40;
                     }
                 }
-                if(checkTriggerDirection(DirectionPad, DirectionDown)){  // Down
+                if(checkDirectionTrigger(DirectionPad, DirectionDown)){  // Down
                     if(x_pos < 0x8C0){
                         x_pos += 0x40;
                     }
                 }
-                if(checkTriggerDirection(DirectionPad, DirectionRight)){  // Right
+                if(checkDirectionTrigger(DirectionPad, DirectionRight)){  // Right
                     if((x_pos & 0x3F) != 0x3F){
                         x_pos++;
                     }
@@ -88,26 +89,26 @@ int main() {
                     MEDIUM_CONTROL[0] = MediumControl(0, (x_pos & 0x3F)<<3, (x_pos>>6)<<3, 0, 0);
                 }
 
-                if(checkTriggerDirection(ToggleButtons, DirectionUp)){  // u button
+                if(checkDirectionTrigger(ToggleButtons, DirectionUp)){  // u button
                     // thread_addr = InitThread();
                     // MEDIUM_CONTROL[0] = MediumControl(1, (x_pos & 0x3F)<<3, (x_pos>>6)<<3, 0, 1);
                     if(x_pos >= 0x40){
                         x_pos -= 0x40;
                     }
                 }
-                if(checkTriggerDirection(ToggleButtons, DirectionRight)){  // i button
+                if(checkDirectionTrigger(ToggleButtons, DirectionRight)){  // i button
                     // uint32_t thread_id = SwitchThread(thread_addr);
                     // MEDIUM_CONTROL[0] = MediumControl(0, (x_pos & 0x3F)<<3, (x_pos>>6)<<3, 0, 0);
                     if((x_pos & 0x3F) != 0x3F){
                         x_pos++;
                     }
                 }
-                if(checkTriggerDirection(ToggleButtons, DirectionLeft)){  // j button
+                if(checkDirectionTrigger(ToggleButtons, DirectionLeft)){  // j button
                     if(x_pos & 0x3F){
                         x_pos--;
                     }
                 }
-                if(checkTriggerDirection(ToggleButtons, DirectionDown)){  // k button
+                if(checkDirectionTrigger(ToggleButtons, DirectionDown)){  // k button
                     if(x_pos < 0x8C0){
                         x_pos += 0x40;
                     }
@@ -118,8 +119,7 @@ int main() {
         countdown--;
         if(!countdown){
             global++;
-            controller_status = eventTriggered();
-            countdown = 10000;
+            countdown = 5000;
         }
         // *INTERRUPT_PENDING_REGISTER &= 0x02;  // Disable VIP Pending
     }

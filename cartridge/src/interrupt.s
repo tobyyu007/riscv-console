@@ -1,5 +1,5 @@
 .section .text, "ax"
-.global _interrupt_handler, GetTicks, GetController, InitThread, SwitchThread, checkControllerStatus, DirectionPadLeft, DirectionPadUp, DirectionPadDown, DirectionPadRight, ToggleButtonsUp, ToggleButtonsRight, ToggleButtonsLeft, ToggleButtonsDown
+.global _interrupt_handler, GetTicks, GetController, InitThread, SwitchThread, checkControllerStatus, DirectionPadLeft, DirectionPadUp, DirectionPadDown, DirectionPadRight, ToggleButtonsUp, ToggleButtonsRight, ToggleButtonsLeft, ToggleButtonsDown, EnableCMDInterrupt, CMDInterrupted, DisableCMDInterrupt
 _interrupt_handler:
     addi	sp,sp,-40
     sw	    ra,36(sp)
@@ -64,4 +64,13 @@ ToggleButtonsLeft:
     ecall
 ToggleButtonsDown:
     li a5, 13
+    ecall
+EnableCMDInterrupt:
+    li a5, 14
+    ecall
+CMDInterrupted:
+    li a5, 15
+    ecall
+DisableCMDInterrupt:
+    li a5, 16
     ecall

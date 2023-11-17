@@ -35,12 +35,16 @@ uint32_t ToggleButtonsRight(void);
 uint32_t ToggleButtonsLeft(void);
 uint32_t ToggleButtonsDown(void);
 
-bool eventTriggered() {  // Check if event is triggered
+uint32_t EnableCMDInterrupt(void);
+uint32_t CMDInterrupted(void);
+uint32_t DisableCMDInterrupt(void);
+
+bool controllerEventTriggered() {  // Check if event is triggered
     return checkControllerStatus();
 }
 
 
-bool checkTriggerDirection(ControllerType controllerType, EventType eventType) {  // Check if the given controller's button is triggered
+bool checkDirectionTrigger(ControllerType controllerType, EventType eventType) {  // Check if the given controller's button is triggered
     Controller controller = {controllerType};
     Event event = {eventType};
     switch (controller.controllerType) {
@@ -61,17 +65,32 @@ bool checkTriggerDirection(ControllerType controllerType, EventType eventType) {
             switch (event.direction) {
                 case DirectionUp:  // u
                     return ToggleButtonsUp();
-                case DirectionDown:  // i
+                case DirectionDown:  // k
                     return ToggleButtonsDown();
-                case DirectionRight:  // j
+                case DirectionRight:  // i
                     return ToggleButtonsRight();
-                case DirectionLeft:  // k
+                case DirectionLeft:  // j
                     return ToggleButtonsLeft();
             }
             break;
     }
 
     return false;
+}
+
+
+void enableCMDInterrupt(){
+    EnableCMDInterrupt();
+}
+
+
+bool CMDPressed(){
+    return CMDInterrupted();
+}
+
+
+void disableCMDInterrupt(){
+    DisableCMDInterrupt();
 }
 
 #endif // EVENT_H

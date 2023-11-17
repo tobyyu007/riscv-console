@@ -64,7 +64,7 @@ void init(void){
     MTIMECMP_HIGH = 0;
 
     // INTERRUPT_ENABLE_REGISTER |= (1 << VIE_BIT) | (1 << CMIE_BIT);
-    INTERRUPT_ENABLE_REGISTER |= (1 << CMIE_BIT);
+    // INTERRUPT_ENABLE_REGISTER |= (1 << CMIE_BIT);
 
 }
 
@@ -122,44 +122,54 @@ uint32_t c_system_call(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg
         SwitchThread(&MainThread,OtherThread);
         return 1;
     }
-    else if(5 == call){  // checkControllerStatus()
+    else if(5 == call){  // event.h - checkControllerStatus()
         volatile uint32_t controller_status = (*((volatile uint32_t *)0x40000018));
         return controller_status ? 1 : 0;
     }
-    else if(6 == call){ // DirectionPadLeft()
+    else if(6 == call){  // event.h - DirectionPadLeft()
         volatile uint32_t controller_status = (*((volatile uint32_t *)0x40000018));
         return (controller_status & 0x1) ? 1 : 0;
     }
-    else if(7 == call){ // DirectionPadUp()
+    else if(7 == call){  // event.h - DirectionPadUp()
         volatile uint32_t controller_status = (*((volatile uint32_t *)0x40000018));
         return (controller_status & 0x2) ? 1 : 0;
     }
-    else if(8 == call){ // DirectionPadDown()
+    else if(8 == call){  // event.h - DirectionPadDown()
         volatile uint32_t controller_status = (*((volatile uint32_t *)0x40000018));
         return (controller_status & 0x4) ? 1 : 0;
     }
-    else if(9 == call){ // DirectionPadRight()
+    else if(9 == call){  // event.h - DirectionPadRight()
         volatile uint32_t controller_status = (*((volatile uint32_t *)0x40000018));
         return (controller_status & 0x8) ? 1 : 0;
     }
-    else if(10 == call){ // ToggleButtonsUp()
+    else if(10 == call){  // event.h - ToggleButtonsUp()
         volatile uint32_t controller_status = (*((volatile uint32_t *)0x40000018));
         return (controller_status & 0x10) ? 1 : 0;
     }
-    else if(11 == call){ // ToggleButtonsRight()
+    else if(11 == call){  // event.h - ToggleButtonsRight()
         volatile uint32_t controller_status = (*((volatile uint32_t *)0x40000018));
         return (controller_status & 0x20) ? 1 : 0;
     }
-    else if(12 == call){ // ToggleButtonsLeft()
+    else if(12 == call){  // event.h - ToggleButtonsLeft()
         volatile uint32_t controller_status = (*((volatile uint32_t *)0x40000018));
         return (controller_status & 0x40) ? 1 : 0;
     }
-    else if(13 == call){ // ToggleButtonsDown()
+    else if(13 == call){  // event.h - ToggleButtonsDown()
         volatile uint32_t controller_status = (*((volatile uint32_t *)0x40000018));
         return (controller_status & 0x80) ? 1 : 0;
     }
-
+    else if(14 == call){  // event.h - EnableCMDInterrupt()
+        INTERRUPT_ENABLE_REGISTER |= (1 << CMIE_BIT);
+        return 1;
+    }
+    else if(15 == call){  // event.h - CMDInterrupted()
+        return (INTERRUPT_PENDING_REGISTER & (1 << CMIE_BIT)) ? 1 : 0;
+    }
+    else if(16 == call){  // event.h - DisableCMDInterrupt()
+        INTERRUPT_PENDING_REGISTER |= (1 << CMIE_BIT);
+        INTERRUPT_ENABLE_REGISTER |= (0 << CMIE_BIT);
+        return 1;
+    }
     return -1;
-
 }
 
