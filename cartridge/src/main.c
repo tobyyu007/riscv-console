@@ -6,33 +6,21 @@
 #include <event.h>
 
 volatile int global = 42;
-//volatile uint32_t controller_status = 0;
-bool controller_status = false;
-uint32_t GetTicks(void);
-uint32_t GetController(void);
-uint32_t InitThread(void);
-uint32_t SwitchThread(uint32_t);
 
-volatile char *VIDEO_MEMORY = (volatile char *)(0x50000000 + 0xF4800);
 volatile uint8_t *MEDIUM_DATA_SQUARE = (volatile uint8_t *)(0x500D0000);
 volatile uint8_t *MEDIUM_DATA_CIRCLE = (volatile uint8_t *)(0x500D0400);
 volatile uint32_t *MEDIUM_PALETTE_PINK = (volatile uint32_t *)(0x500F2000);
 volatile uint32_t *MEDIUM_PALETTE_WHITE = (volatile uint32_t *)(0x500F2400);
 volatile uint32_t *MEDIUM_CONTROL = (volatile uint32_t *)(0x500F5F00);
 volatile uint32_t *MODE_REGISTER = (volatile uint32_t *)(0x500F6780);
-volatile uint32_t *INTERRUPT_PENDING_REGISTER = (volatile uint32_t * )(0x40000004);
-volatile uint32_t *INTERRUPT_ENABLE_REGISTER = (volatile uint32_t *)(0x40000000);
 
 uint32_t MediumControl(uint8_t palette, int16_t x, int16_t y, uint8_t z, uint8_t index);
 
 uint32_t thread_addr;
 
-#define CMIE_BIT 2
 void fillOutData();
 int main() {
     int countdown = 1;
-    int a = 4;
-    int b = 12;
     int last_global = 42;
     int x_pos = 0;
     fillOutData();
@@ -43,7 +31,6 @@ int main() {
     int currentIndex = 0;
 
     while (1) {
-        int c = a + b + global;
         enableCMDInterrupt();
         if(CMDPressed()){
             if (currentIndex == 0){
@@ -59,7 +46,6 @@ int main() {
 
         if(global != last_global){
             if(controllerEventTriggered()){
-                //VIDEO_MEMORY[x_pos] = ' ';
 
                 if(checkDirectionTrigger(DirectionPad, DirectionLeft)){  // Left
                     if(x_pos & 0x3F){
@@ -90,15 +76,11 @@ int main() {
                 }
 
                 if(checkDirectionTrigger(ToggleButtons, DirectionUp)){  // u button
-                    // thread_addr = InitThread();
-                    // MEDIUM_CONTROL[0] = MediumControl(1, (x_pos & 0x3F)<<3, (x_pos>>6)<<3, 0, 1);
                     if(x_pos >= 0x40){
                         x_pos -= 0x40;
                     }
                 }
                 if(checkDirectionTrigger(ToggleButtons, DirectionRight)){  // i button
-                    // uint32_t thread_id = SwitchThread(thread_addr);
-                    // MEDIUM_CONTROL[0] = MediumControl(0, (x_pos & 0x3F)<<3, (x_pos>>6)<<3, 0, 0);
                     if((x_pos & 0x3F) != 0x3F){
                         x_pos++;
                     }
@@ -121,7 +103,6 @@ int main() {
             global++;
             countdown = 5000;
         }
-        // *INTERRUPT_PENDING_REGISTER &= 0x02;  // Disable VIP Pending
     }
     return 0;
 }
