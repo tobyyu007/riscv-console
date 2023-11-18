@@ -31,22 +31,76 @@ int yPosMax = 288;
 
 // Rectangle size
 int rectangleHeight = 64; // Height of the rectangle
-int rectangleWidth = 8;   // Width of the rectangle
+int rectangleWidth = 12;  // Width of the rectangle
+int batXOffset = 20; // Offset for the bat in the X axis
 
 // Ball size
 int ballRadius = 8;   // Radius of the ball
-float minSpeed = 0.3;   // Minimum speed of the ball
+float minSpeed = 0.3; // Minimum speed of the ball
 float maxSpeed = 0.5; // Maximum speed of the ball
 
 uint32_t setLargeGraphicObject(uint8_t palette, int16_t x, int16_t y, uint8_t z, uint8_t canvasIndex);
 uint32_t setSmallGraphicObject(uint8_t palette, int16_t x, int16_t y, uint8_t z, uint8_t canvasIndex);
 void createGraphicObject();
 
+bool collision(int playerTopLeftX, int playerTopLeftY, int pingPongX, int pingPongY, int rectangleWidth, int rectangleHeight, int ballRadius)
+{
+    int playerCenterX = playerTopLeftX + rectangleWidth / 2;
+    int playerCenterY = playerTopLeftY + rectangleHeight / 2;
+    int ballCenterX = pingPongX + ballRadius;
+    int ballCenterY = pingPongY + ballRadius;
+
+    int dx = abs(ballCenterX - playerCenterX);
+    int dy = abs(ballCenterY - playerCenterY);
+
+    if (dx > (rectangleWidth / 2 + ballRadius))
+    {
+        return false;
+    }
+    if (dy > (rectangleHeight / 2 + ballRadius))
+    {
+        return false;
+    }
+
+    if(dx <= (rectangleWidth / 2)){
+        return true;
+    }
+
+    if (dy <= (rectangleHeight / 2))
+    {
+        return true;
+    }
+
+    int cornerDistance_sq = (dx - rectangleWidth / 2) * (dx - rectangleWidth / 2) + (dy - rectangleHeight / 2) * (dy - rectangleHeight / 2);
+
+    return (cornerDistance_sq <= (ballRadius * ballRadius));
+}
+
+void handleCollision(float *speedX, float *speedY, float *pingPongX, int playerX)
+{
+    *speedX = -(*speedX);
+    *speedY = -(*speedY);
+
+    // Adjust the horizontal speed
+    if (*speedX < 0) {
+        *speedX -= 0.05;
+    } else {
+        *speedX += 0.05;
+    }
+
+    // Adjust the ball's position to avoid multiple collisions (teleporting)
+    if (*speedX > 0 && *pingPongX < playerX + rectangleWidth) {
+        *pingPongX = batXOffset + rectangleWidth;
+    }
+    if (*speedX < 0 && *pingPongX + ballRadius * 2 > playerX) {
+        *pingPongX = xPosMax - batXOffset - rectangleWidth - ballRadius * 2;
+    }
+}
+
 int main()
 {
     int countdown = 1;
     int last_global = 42;
-    int batXOffset = 20; // Offset for the bat in the X axis
     *GRAPHICS_MODE = 1;  // 0: text mode/ 1: graphic mode
 
     // Player 1 and 2 starting position
@@ -115,57 +169,27 @@ int main()
                 player1BatObject[0] = setLargeGraphicObject(0, player1X, player1Y, 0, 0);
                 player2BatObject[0] = setLargeGraphicObject(0, player2X, player2Y, 0, 1);
             }
-            
-            // Move the ball
-            pingPongX += ballSpeedX;
-            pingPongY += ballSpeedY;
-            int centerX = pingPongX + 8;
-            int centerY = pingPongY + 8;
 
             // Check if the ball touches the upper or lower edge of the screen
-            if (centerY - ballRadius < 0 || centerY + ballRadius > yPosMax)
+            if (pingPongY < 0 || pingPongY + ballRadius > yPosMax)
             {
                 ballSpeedY = -ballSpeedY;
             }
 
             // Player 1's bat check
-            // Check if the ball hits player1's right side of the rectangle
-            if (centerX - ballRadius == batXOffset + rectangleWidth && centerY + ballRadius >= player1Y && centerY - ballRadius <= player1Y + rectangleHeight)
+            if (collision(player1X, player1Y, pingPongX, pingPongY, rectangleWidth, rectangleHeight, ballRadius))
             {
-                ballSpeedX = -ballSpeedX;
+                handleCollision(&ballSpeedX, &ballSpeedY, &pingPongX, player1X);
             }
-            // Check if the ball hits player1's bottom side of the rectangle
-            if (centerX - ballRadius >= batXOffset && centerX - ballRadius <= batXOffset + rectangleWidth && centerY - ballRadius == player1Y + rectangleHeight)
-            {
-                ballSpeedY = -ballSpeedY;
-            }
-            // Check if the ball hits player1's top side of the rectangle
-            if (centerX - ballRadius >= batXOffset && centerX - ballRadius <= batXOffset + rectangleWidth && centerY + ballRadius == player1Y)
-            {
-                ballSpeedY = -ballSpeedY;
-            }
-
 
             // Player 2's bat check
-            // Check if the ball hits player2's rectangle
-            if (centerX + ballRadius == player2X && centerY + ballRadius >= player2Y && centerY - ballRadius <= player2Y + rectangleHeight)
+            if (collision(player2X, player2Y, pingPongX, pingPongY, rectangleWidth, rectangleHeight, ballRadius))
             {
-                ballSpeedX = -ballSpeedX;
-            }
-            // Check if the ball hits player2's bottom side of the rectangle
-            if (centerX + ballRadius >= player2X && centerX + ballRadius <= player2X + rectangleWidth && centerY - ballRadius == player2Y + rectangleHeight)
-            {
-                ballSpeedY = -ballSpeedY;
-            }
-            // Check if the ball hits player2's top side of the rectangle
-            if (centerX + ballRadius >= player2X && centerX + ballRadius <= player2X + rectangleWidth && centerY + ballRadius == player2Y)
-            {
-                ballSpeedY = -ballSpeedY;
+                handleCollision(&ballSpeedX, &ballSpeedY, &pingPongX, player2X);
             }
 
-
-            // Reset position if needed
-            if (centerX + ballRadius <= 0 || centerX + ballRadius >= xPosMax)
+            // // Reset position if needed
+            if (pingPongX <= 0 || pingPongX + ballRadius*2 >= xPosMax)
             {
                 srand(global);
 
@@ -184,9 +208,11 @@ int main()
                 // *GRAPHICS_MODE = 0;  // 0: text mode/ 1: graphic mode
             }
 
-            // Update ball object
+            // Update bat location
+            pingPongX += ballSpeedX;
+            pingPongY += ballSpeedY;
             pingPongBallObject[0] = setSmallGraphicObject(0, pingPongX, pingPongY, 0, 0);
-
+            
             last_global = global;
         }
         countdown--;
