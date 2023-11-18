@@ -10,16 +10,17 @@ volatile int global = 42;
 // Palettes
 volatile uint32_t *largePaletteWhite = (volatile uint32_t *)(0x500F1000);
 volatile uint32_t *largePaletteOrange = (volatile uint32_t *)(0x500F1400);
+volatile uint32_t *smallPaletteOrange = (volatile uint32_t *)(0x500F3000);
 
 // Canvas
 volatile uint8_t *player1RectangleCanvas = (volatile uint8_t *)(0x50090000);
 volatile uint8_t *player2RectangleCanvas = (volatile uint8_t *)(0x50091000);
-volatile uint8_t *pingPongBallCanvas = (volatile uint8_t *)(0x50092000);
+volatile uint8_t *pingPongBallCanvas = (volatile uint8_t *)(0x500E0000);
 
 // Objects
 volatile uint32_t *player1BatObject = (volatile uint32_t *)(0x500F5B00);
 volatile uint32_t *player2BatObject = (volatile uint32_t *)(0x500F5B04);
-volatile uint32_t *pingPongBallObject = (volatile uint32_t *)(0x500F5B08);
+volatile uint32_t *pingPongBallObject = (volatile uint32_t *)(0x500F6300);
 
 // Graphic setting
 volatile uint32_t *GRAPHICS_MODE = (volatile uint32_t *)(0x500F6780);
@@ -33,48 +34,53 @@ int rectangleHeight = 64; // Height of the rectangle
 int rectangleWidth = 8;   // Width of the rectangle
 
 // Ball size
-int ballRadius = 16;
+int ballRadius = 8; // Radius of the ball
+float minSpeed = 0; // Minimum speed of the ball
+float maxSpeed = 0.3; // Maximum speed of the ball
 
 uint32_t setLargeGraphicObject(uint8_t palette, int16_t x, int16_t y, uint8_t z, uint8_t canvasIndex);
-uint32_t setMediumGraphicObject(uint8_t palette, int16_t x, int16_t y, uint8_t z, uint8_t canvasIndex);
+uint32_t setSmallGraphicObject(uint8_t palette, int16_t x, int16_t y, uint8_t z, uint8_t canvasIndex);
 void createGraphicObject();
 
 int main()
 {
     int countdown = 1;
     int last_global = 42;
-    int batXOffset = 20;  // Offset for the bat in the X axis
+    int batXOffset = 20; // Offset for the bat in the X axis
     int player1X = 0 + batXOffset;
     int player1Y = yPosMax / 2 - rectangleHeight / 2;
     int player2X = xPosMax - rectangleWidth - batXOffset;
     int player2Y = yPosMax / 2 - rectangleHeight / 2;
-    int pingPongX = xPosMax/2;
-    int pingPongY = yPosMax/2;
+    float pingPongX = xPosMax / 2 - ballRadius / 2;
+    float pingPongY = yPosMax / 2 - ballRadius / 2;
     *GRAPHICS_MODE = 1; // 0: text mode/ 1: graphic mode
 
-    largePaletteWhite[1] = 0xFFFFFFFF;   // A R G B
+    largePaletteWhite[1] = 0xFFFFFFFF;  // A R G B
     largePaletteOrange[1] = 0xFFF05E1C; // A R G B
+    smallPaletteOrange[1] = 0xFFF05E1C; // A R G B
 
     createGraphicObject();
 
-    player1BatObject[0] = setLargeGraphicObject(0, player1X, player1Y, 0, 0); // Player 1
-    player2BatObject[0] = setLargeGraphicObject(0, player2X, player2Y, 0, 1); // Player 2
-    pingPongBallObject[0] = setLargeGraphicObject(1, xPosMax/2-ballRadius*2, yPosMax/2-ballRadius*2, 0, 2); // Ping Pong Ball
+    player1BatObject[0] = setLargeGraphicObject(0, player1X, player1Y, 0, 0);                                           // Player 1
+    player2BatObject[0] = setLargeGraphicObject(0, player2X, player2Y, 0, 1);                                           // Player 2
+    pingPongBallObject[0] = setSmallGraphicObject(0, pingPongX, pingPongY, 0, 0); // Ping Pong Ball
+
+    // Set random speed for the ball
+    srand(42);
+    float ballSpeedX = minSpeed + (rand() / (float) RAND_MAX) * (maxSpeed - minSpeed);
+    float ballSpeedY = minSpeed + (rand() / (float) RAND_MAX) * (maxSpeed - minSpeed);
 
     while (1)
     {
         if (global != last_global)
-        {
+        {   
+            // Move the ball
+            pingPongX += ballSpeedX;
+            pingPongY += ballSpeedY;
+            pingPongBallObject[0] = setSmallGraphicObject(0, pingPongX, pingPongY, 0, 0);
+
             if (controllerEventTriggered())
             {
-
-                if (checkDirectionTrigger(DirectionPad, DirectionLeft))
-                { // Left
-                    if (player1X > 0)
-                    {
-                        player1X--;
-                    }
-                }
 
                 if (checkDirectionTrigger(DirectionPad, DirectionUp))
                 { // Up
@@ -90,33 +96,12 @@ int main()
                         player1Y += 1;
                     }
                 }
-                if (checkDirectionTrigger(DirectionPad, DirectionRight))
-                { // Right
-                    if (player1X + rectangleWidth < xPosMax)
-                    {
-                        player1X++;
-                    }
-                }
 
                 if (checkDirectionTrigger(ToggleButtons, DirectionUp))
                 { // u button (Up)
                     if (player2Y > 0)
                     {
                         player2Y -= 1;
-                    }
-                }
-                if (checkDirectionTrigger(ToggleButtons, DirectionRight))
-                { // i button (Right)
-                    if (player2X + rectangleWidth < xPosMax)
-                    {
-                        player2X++;
-                    }
-                }
-                if (checkDirectionTrigger(ToggleButtons, DirectionLeft))
-                { // j button (Left)
-                    if (player2X > 0)
-                    {
-                        player2X--;
                     }
                 }
                 if (checkDirectionTrigger(ToggleButtons, DirectionDown))
@@ -147,11 +132,10 @@ uint32_t setLargeGraphicObject(uint8_t palette, int16_t x, int16_t y, uint8_t z,
     // Look at the upper left for starting anchor
     return (((uint32_t)canvasIndex) << 24) | (((uint32_t)z) << 21) | (((uint32_t)y + 64) << 12) | (((uint32_t)x + 64) << 2) | (palette & 0x3);
 }
-
-uint32_t setMediumGraphicObject(uint8_t palette, int16_t x, int16_t y, uint8_t z, uint8_t canvasIndex)
+uint32_t setSmallGraphicObject(uint8_t palette, int16_t x, int16_t y, uint8_t z, uint8_t canvasIndex)
 {
     // Look at the upper left for starting anchor
-    return (((uint32_t)canvasIndex) << 24) | (((uint32_t)z) << 21) | (((uint32_t)y + 32) << 12) | (((uint32_t)x + 32) << 2) | (palette & 0x3);
+    return (((uint32_t)canvasIndex) << 24) | (((uint32_t)z) << 21) | (((uint32_t)y + 16) << 12) | (((uint32_t)x + 16) << 2) | (palette & 0x3);
 }
 
 extern char _heap_base[];
@@ -181,7 +165,7 @@ char *_sbrk(int numbytes)
 
 void createGraphicObject()
 {
-    // Fill out Player 1 Rectangle data
+    // Fill out Player 1 Rectangle data (large canvas)
     for (int y = 0; y < rectangleHeight; y++) // Iterate over the height of the rectangle
     {
         for (int x = 0; x < rectangleWidth; x++) // Iterate over the width of the rectangle
@@ -190,7 +174,7 @@ void createGraphicObject()
         }
     }
 
-    // Fill out Player 2 Rectangle data
+    // Fill out Player 2 Rectangle data (large canvas)
     for (int y = 0; y < rectangleHeight; y++) // Iterate over the height of the rectangle
     {
         for (int x = 0; x < rectangleWidth; x++) // Iterate over the width of the rectangle
@@ -199,14 +183,13 @@ void createGraphicObject()
         }
     }
 
-    // Fill out circle data
-    int centerX = 32; // X-coordinate of the center of the circle
-    int centerY = 32; // Y-coordinate of the center of the circle
-    int ballRadius = 12;  // Radius of the circle
+    // Fill out circle data (small canvas)
+    int centerX = 8; // X-coordinate of the center of the circle
+    int centerY = 8; // Y-coordinate of the center of the circle
 
-    for (int y = 0; y < 64; y++)
+    for (int y = 0; y < 16; y++)
     {
-        for (int x = 0; x < 64; x++)
+        for (int x = 0; x < 16; x++)
         {
             int dx = x - centerX;
             int dy = y - centerY;
@@ -214,11 +197,11 @@ void createGraphicObject()
 
             if (distance <= ballRadius * ballRadius)
             {
-                pingPongBallCanvas[y * 64 + x] = 1; // Set pixel to 1 if it's inside the circle
+                pingPongBallCanvas[y * 16 + x] = 1; // Set pixel to 1 if it's inside the circle
             }
             else
             {
-                pingPongBallCanvas[y * 64 + x] = 0; // Set pixel to 0 if it's outside the circle
+                pingPongBallCanvas[y * 16 + x] = 0; // Set pixel to 0 if it's outside the circle
             }
         }
     }

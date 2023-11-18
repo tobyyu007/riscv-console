@@ -1,1 +1,11 @@
-.DS_Store
+# Ignore all files
+*
+
+# But don't ignore these directories and their contents
+!/cartridge/
+!/firmware/
+!/firmware/
+
+# Don't ignore .gitignore files
+!.gitignore
+!readme.md

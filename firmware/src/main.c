@@ -12,7 +12,7 @@ typedef void(*FunctionPtr)(void);
 extern volatile uint32_t video_interrupt_count;
 volatile uint32_t *GRAPHICS_MODE = (volatile uint32_t *)(0x500F6780);
 
-uint32_t setLargeGraphicObject(uint8_t palette, int16_t x, int16_t y, uint8_t z, uint8_t index);
+uint32_t setSmallGraphicObject(uint8_t palette, int16_t x, int16_t y, uint8_t z, uint8_t index);
 
 
 int main() {
@@ -35,7 +35,7 @@ int main() {
     return 0;
 }
 
-uint32_t setLargeGraphicObject(uint8_t palette, int16_t x, int16_t y, uint8_t z, uint8_t index){
+uint32_t setSmallGraphicObject(uint8_t palette, int16_t x, int16_t y, uint8_t z, uint8_t index){
     return (((uint32_t)index)<<24) | (((uint32_t)z)<<21) | (((uint32_t)y+32)<<12) | (((uint32_t)x+32)<<2) | (palette & 0x3);
 }
 
