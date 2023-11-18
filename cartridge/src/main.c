@@ -35,8 +35,8 @@ int rectangleWidth = 8;   // Width of the rectangle
 
 // Ball size
 int ballRadius = 8;   // Radius of the ball
-float minSpeed = 0.2;   // Minimum speed of the ball
-float maxSpeed = 0.4; // Maximum speed of the ball
+float minSpeed = 0.3;   // Minimum speed of the ball
+float maxSpeed = 0.5; // Maximum speed of the ball
 
 uint32_t setLargeGraphicObject(uint8_t palette, int16_t x, int16_t y, uint8_t z, uint8_t canvasIndex);
 uint32_t setSmallGraphicObject(uint8_t palette, int16_t x, int16_t y, uint8_t z, uint8_t canvasIndex);
@@ -80,43 +80,6 @@ int main()
     {
         if (global != last_global)
         {
-            // Move the ball
-            pingPongX += ballSpeedX;
-            pingPongY += ballSpeedY;
-
-            // Check if the ball touches the upper or lower edge of the screen
-            if (pingPongY - ballRadius < 0 || pingPongY + ballRadius > yPosMax)
-            {
-                ballSpeedY = -ballSpeedY;
-            }
-            // Check if the ball hits player1's rectangle
-            else if (pingPongX <= player1X + rectangleWidth && pingPongY + ballRadius >= player1Y && pingPongY + ballRadius <= player1Y + rectangleHeight)
-            {
-                ballSpeedX = -ballSpeedX;
-            }
-            // Check if the ball hits player2's rectangle
-            else if (pingPongX + ballRadius >= player2X && pingPongY + ballRadius >= player2Y && pingPongY + ballRadius <= player2Y + rectangleHeight)
-            {
-                ballSpeedX = -ballSpeedX;
-            }
-
-            // Check if the ball is out of bounds and reset position if needed
-            if (pingPongX - ballRadius <= 0 || pingPongX + ballRadius >= xPosMax)
-            {
-                srand(global);
-
-                // Randomize ball speed
-                ballSpeedX = minSpeed + (rand() / (float)RAND_MAX) * (maxSpeed - minSpeed);
-                ballSpeedY = minSpeed + (rand() / (float)RAND_MAX) * (maxSpeed - minSpeed);
-
-                // Reset ball position to the center
-                pingPongX = xPosMax / 2 - ballRadius / 2;
-                pingPongY = yPosMax / 2 - ballRadius / 2;
-            }
-
-            // Update ball object
-            pingPongBallObject[0] = setSmallGraphicObject(0, pingPongX, pingPongY, 0, 0);
-
             if (controllerEventTriggered())
             {
                 if (checkDirectionTrigger(DirectionPad, DirectionUp))
@@ -152,6 +115,78 @@ int main()
                 player1BatObject[0] = setLargeGraphicObject(0, player1X, player1Y, 0, 0);
                 player2BatObject[0] = setLargeGraphicObject(0, player2X, player2Y, 0, 1);
             }
+            
+            // Move the ball
+            pingPongX += ballSpeedX;
+            pingPongY += ballSpeedY;
+            int centerX = pingPongX + 8;
+            int centerY = pingPongY + 8;
+
+            // Check if the ball touches the upper or lower edge of the screen
+            if (centerY - ballRadius < 0 || centerY + ballRadius > yPosMax)
+            {
+                ballSpeedY = -ballSpeedY;
+            }
+
+            // Player 1's bat check
+            // Check if the ball hits player1's right side of the rectangle
+            if (centerX - ballRadius == batXOffset + rectangleWidth && centerY + ballRadius >= player1Y && centerY - ballRadius <= player1Y + rectangleHeight)
+            {
+                ballSpeedX = -ballSpeedX;
+            }
+            // Check if the ball hits player1's bottom side of the rectangle
+            if (centerX - ballRadius >= batXOffset && centerX - ballRadius <= batXOffset + rectangleWidth && centerY - ballRadius == player1Y + rectangleHeight)
+            {
+                ballSpeedY = -ballSpeedY;
+            }
+            // Check if the ball hits player1's top side of the rectangle
+            if (centerX - ballRadius >= batXOffset && centerX - ballRadius <= batXOffset + rectangleWidth && centerY + ballRadius == player1Y)
+            {
+                ballSpeedY = -ballSpeedY;
+            }
+
+
+            // Player 2's bat check
+            // Check if the ball hits player2's rectangle
+            if (centerX + ballRadius == player2X && centerY + ballRadius >= player2Y && centerY - ballRadius <= player2Y + rectangleHeight)
+            {
+                ballSpeedX = -ballSpeedX;
+            }
+            // Check if the ball hits player2's bottom side of the rectangle
+            if (centerX + ballRadius >= player2X && centerX + ballRadius <= player2X + rectangleWidth && centerY - ballRadius == player2Y + rectangleHeight)
+            {
+                ballSpeedY = -ballSpeedY;
+            }
+            // Check if the ball hits player2's top side of the rectangle
+            if (centerX + ballRadius >= player2X && centerX + ballRadius <= player2X + rectangleWidth && centerY + ballRadius == player2Y)
+            {
+                ballSpeedY = -ballSpeedY;
+            }
+
+
+            // Reset position if needed
+            if (centerX + ballRadius <= 0 || centerX + ballRadius >= xPosMax)
+            {
+                srand(global);
+
+                // Randomize ball speed
+                ballSpeedX = minSpeed + (rand() / (float)RAND_MAX) * (maxSpeed - minSpeed);
+                ballSpeedY = minSpeed + (rand() / (float)RAND_MAX) * (maxSpeed - minSpeed);
+
+                // Reset ball position to the center
+                pingPongX = xPosMax / 2 - ballRadius / 2;
+                pingPongY = yPosMax / 2 - ballRadius / 2;
+
+                // volatile char *VIDEO_MEMORY = (volatile char *)(0x50000000 + 0xF4800);
+                // char *Buffer = malloc(32);
+                // strcpy(Buffer, "OS Started2");
+                // strcpy((char *)VIDEO_MEMORY, Buffer);
+                // *GRAPHICS_MODE = 0;  // 0: text mode/ 1: graphic mode
+            }
+
+            // Update ball object
+            pingPongBallObject[0] = setSmallGraphicObject(0, pingPongX, pingPongY, 0, 0);
+
             last_global = global;
         }
         countdown--;
