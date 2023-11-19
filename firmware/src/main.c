@@ -4,13 +4,15 @@
 #include <stdio.h>
 
 volatile int global = 42;
-volatile uint32_t controller_status = 0;
 
 volatile char *VIDEO_MEMORY = (volatile char *)(0x50000000 + 0xF4800);
 volatile uint32_t *CartridgeStatus = (volatile uint32_t *)(0x4000001C);
 typedef void(*FunctionPtr)(void);
 extern volatile uint32_t video_interrupt_count;
+extern volatile uint32_t CMD_interrupt_count;
 volatile uint32_t *GRAPHICS_MODE = (volatile uint32_t *)(0x500F6780);
+
+#define INTERRUPT_ENABLE_REGISTER (*((volatile uint32_t *)0x40000000))
 
 uint32_t setSmallGraphicObject(uint8_t palette, int16_t x, int16_t y, uint8_t z, uint8_t index);
 
@@ -20,7 +22,7 @@ int main() {
     int b = 12;
     int last_global = 42;
     int x_pos = 12;
-    char *Buffer = malloc(32);
+    char *Buffer = malloc(128);
     strcpy(Buffer, "OS Started");
     strcpy((char *)VIDEO_MEMORY, Buffer);
     *GRAPHICS_MODE = 0; // 0: text mode/ 1: graphic mode 
@@ -29,7 +31,7 @@ int main() {
             FunctionPtr Fun = (FunctionPtr)((*CartridgeStatus) & 0xFFFFFFFC);
             Fun();
         }
-        sprintf(Buffer, "Video Interrupts: %u", video_interrupt_count);
+        sprintf(Buffer, "CMD Interrupts: %u", CMD_interrupt_count);
         strcpy((char *)VIDEO_MEMORY + 16, Buffer);
     }
     return 0;

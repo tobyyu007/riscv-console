@@ -22,6 +22,9 @@ volatile uint32_t *player1BatObject = (volatile uint32_t *)(0x500F5B00);
 volatile uint32_t *player2BatObject = (volatile uint32_t *)(0x500F5B04);
 volatile uint32_t *pingPongBallObject = (volatile uint32_t *)(0x500F6300);
 
+// Text Data
+volatile char *VIDEO_MEMORY = (volatile char *)(0x500F4800);
+
 // Graphic setting
 volatile uint32_t *GRAPHICS_MODE = (volatile uint32_t *)(0x500F6780);
 
@@ -29,10 +32,14 @@ volatile uint32_t *GRAPHICS_MODE = (volatile uint32_t *)(0x500F6780);
 int xPosMax = 512;
 int yPosMax = 288;
 
+// Screen dimensions in characters
+#define SCREEN_COLS 64
+#define SCREEN_ROWS 36
+
 // Rectangle size
 int rectangleHeight = 64; // Height of the rectangle
 int rectangleWidth = 12;  // Width of the rectangle
-int batXOffset = 20; // Offset for the bat in the X axis
+int batXOffset = 20;      // Offset for the bat in the X axis
 
 // Ball size
 int ballRadius = 8;   // Radius of the ball
@@ -43,65 +50,17 @@ uint32_t setLargeGraphicObject(uint8_t palette, int16_t x, int16_t y, uint8_t z,
 uint32_t setSmallGraphicObject(uint8_t palette, int16_t x, int16_t y, uint8_t z, uint8_t canvasIndex);
 void createGraphicObject();
 
-bool collision(int playerTopLeftX, int playerTopLeftY, int pingPongX, int pingPongY, int rectangleWidth, int rectangleHeight, int ballRadius)
-{
-    int playerCenterX = playerTopLeftX + rectangleWidth / 2;
-    int playerCenterY = playerTopLeftY + rectangleHeight / 2;
-    int ballCenterX = pingPongX + ballRadius;
-    int ballCenterY = pingPongY + ballRadius;
-
-    int dx = abs(ballCenterX - playerCenterX);
-    int dy = abs(ballCenterY - playerCenterY);
-
-    if (dx > (rectangleWidth / 2 + ballRadius))
-    {
-        return false;
-    }
-    if (dy > (rectangleHeight / 2 + ballRadius))
-    {
-        return false;
-    }
-
-    if(dx <= (rectangleWidth / 2)){
-        return true;
-    }
-
-    if (dy <= (rectangleHeight / 2))
-    {
-        return true;
-    }
-
-    int cornerDistance_sq = (dx - rectangleWidth / 2) * (dx - rectangleWidth / 2) + (dy - rectangleHeight / 2) * (dy - rectangleHeight / 2);
-
-    return (cornerDistance_sq <= (ballRadius * ballRadius));
-}
-
-void handleCollision(float *speedX, float *speedY, float *pingPongX, int playerX)
-{
-    *speedX = -(*speedX);
-    *speedY = -(*speedY);
-
-    // Adjust the horizontal speed
-    if (*speedX < 0) {
-        *speedX -= 0.05;
-    } else {
-        *speedX += 0.05;
-    }
-
-    // Adjust the ball's position to avoid multiple collisions (teleporting)
-    if (*speedX > 0 && *pingPongX < playerX + rectangleWidth) {
-        *pingPongX = batXOffset + rectangleWidth;
-    }
-    if (*speedX < 0 && *pingPongX + ballRadius * 2 > playerX) {
-        *pingPongX = xPosMax - batXOffset - rectangleWidth - ballRadius * 2;
-    }
-}
+bool collision(int playerTopLeftX, int playerTopLeftY, int pingPongX, int pingPongY, int rectangleWidth, int rectangleHeight, int ballRadius);
+void handleCollision(float *speedX, float *speedY, float *pingPongX, int playerX);
+void clearTextData();
+void showTextToLine(const char* text, int line);
 
 int main()
 {
     int countdown = 1;
     int last_global = 42;
-    *GRAPHICS_MODE = 1;  // 0: text mode/ 1: graphic mode
+    *GRAPHICS_MODE = 1; // 0: text mode/ 1: graphic mode
+    clearTextData();
 
     // Player 1 and 2 starting position
     int player1X = 0 + batXOffset;
@@ -130,90 +89,145 @@ int main()
     float ballSpeedX = minSpeed + (rand() / (float)RAND_MAX) * (maxSpeed - minSpeed);
     float ballSpeedY = minSpeed + (rand() / (float)RAND_MAX) * (maxSpeed - minSpeed);
 
+    bool start = false;
+    char *Buffer = malloc(32);
+
     while (1)
     {
         if (global != last_global)
         {
-            if (controllerEventTriggered())
+            // Check if the game is started
+            if (start == false)
             {
-                if (checkDirectionTrigger(DirectionPad, DirectionUp))
-                { // Up
-                    if (player1Y > 0)
-                    {
-                        player1Y -= 1;
+                strcpy(Buffer, "Press D and J to start");
+                showTextToLine(Buffer, SCREEN_ROWS/2);
+                //strcpy((char *)VIDEO_MEMORY, Buffer);
+                *GRAPHICS_MODE = 0; // 0: text mode/ 1: graphic mode
+
+                // enableCMDInterrupt();
+                if (checkDirectionTrigger(DirectionPad, DirectionRight) && checkDirectionTrigger(ToggleButtons, DirectionLeft))
+                {
+                    start = true;
+                    *GRAPHICS_MODE = 1; // 0: text mode/ 1: graphic mode
+                    // disableCMDInterrupt();
+                    clearTextData();
+                }
+            }
+
+            else
+            {
+                if (controllerEventTriggered())
+                {
+                    if (checkDirectionTrigger(DirectionPad, DirectionUp))
+                    { // Up
+                        if (player1Y > 0)
+                        {
+                            player1Y -= 1;
+                        }
+                    }
+                    if (checkDirectionTrigger(DirectionPad, DirectionDown))
+                    { // Down
+                        if (player1Y + rectangleHeight < yPosMax)
+                        {
+                            player1Y += 1;
+                        }
+                    }
+
+                    if (checkDirectionTrigger(ToggleButtons, DirectionUp))
+                    { // u button (Up)
+                        if (player2Y > 0)
+                        {
+                            player2Y -= 1;
+                        }
+                    }
+                    if (checkDirectionTrigger(ToggleButtons, DirectionDown))
+                    { // k button (Down)
+                        if (player2Y + rectangleHeight < yPosMax)
+                        {
+                            player2Y += 1;
+                        }
+                    }
+
+                    player1BatObject[0] = setLargeGraphicObject(0, player1X, player1Y, 0, 0);
+                    player2BatObject[0] = setLargeGraphicObject(0, player2X, player2Y, 0, 1);
+                }
+
+                // Check if the ball touches the upper or lower edge of the screen
+                if (pingPongY < 0 || pingPongY + ballRadius > yPosMax)
+                {
+                    ballSpeedY = -ballSpeedY;
+                }
+
+                // Player 1's bat check
+                if (collision(player1X, player1Y, pingPongX, pingPongY, rectangleWidth, rectangleHeight, ballRadius))
+                {
+                    handleCollision(&ballSpeedX, &ballSpeedY, &pingPongX, player1X);
+                }
+
+                // Player 2's bat check
+                if (collision(player2X, player2Y, pingPongX, pingPongY, rectangleWidth, rectangleHeight, ballRadius))
+                {
+                    handleCollision(&ballSpeedX, &ballSpeedY, &pingPongX, player2X);
+                }
+
+                // // Reset position if needed
+                if (pingPongX <= 0 || pingPongX + ballRadius * 2 >= xPosMax)
+                {
+                    if(pingPongX <= 0){
+                        strcpy(Buffer, "Player 2 wins!");
+                        showTextToLine(Buffer, SCREEN_ROWS/2 - 1);
+                        strcpy(Buffer, "Press D and J to restart");
+                        showTextToLine(Buffer, SCREEN_ROWS/2 + 1);
+                    }
+                    else{
+                        strcpy(Buffer, "Player 1 wins!");
+                        showTextToLine(Buffer, SCREEN_ROWS/2 - 1);
+                        strcpy(Buffer, "Press D and J to restart");
+                        showTextToLine(Buffer, SCREEN_ROWS/2 + 1);
+                    }
+
+                    *GRAPHICS_MODE = 0;  // 0: text mode/ 1: graphic mode
+
+                    //enableCMDInterrupt();
+                    // if (CMDPressed())
+                    // {   
+                    //     clearTextData();
+                    //     //disableCMDInterrupt();
+                    //     srand(global);
+
+                    //     // Randomize ball speed
+                    //     ballSpeedX = minSpeed + (rand() / (float)RAND_MAX) * (maxSpeed - minSpeed);
+                    //     ballSpeedY = minSpeed + (rand() / (float)RAND_MAX) * (maxSpeed - minSpeed);
+
+                    //     // Reset ball position to the center
+                    //     pingPongX = xPosMax / 2 - ballRadius / 2;
+                    //     pingPongY = yPosMax / 2 - ballRadius / 2;
+                    //     *GRAPHICS_MODE = 1;  // 0: text mode/ 1: graphic mode
+                    // }
+
+                    if(checkDirectionTrigger(DirectionPad, DirectionRight) && checkDirectionTrigger(ToggleButtons, DirectionLeft)){
+                        clearTextData();
+                        //disableCMDInterrupt();
+                        srand(global);
+
+                        // Randomize ball speed
+                        ballSpeedX = minSpeed + (rand() / (float)RAND_MAX) * (maxSpeed - minSpeed);
+                        ballSpeedY = minSpeed + (rand() / (float)RAND_MAX) * (maxSpeed - minSpeed);
+
+                        // Reset ball position to the center
+                        pingPongX = xPosMax / 2 - ballRadius / 2;
+                        pingPongY = yPosMax / 2 - ballRadius / 2;
+                        *GRAPHICS_MODE = 1;  // 0: text mode/ 1: graphic mode
                     }
                 }
-                if (checkDirectionTrigger(DirectionPad, DirectionDown))
-                { // Down
-                    if (player1Y + rectangleHeight < yPosMax)
-                    {
-                        player1Y += 1;
-                    }
-                }
 
-                if (checkDirectionTrigger(ToggleButtons, DirectionUp))
-                { // u button (Up)
-                    if (player2Y > 0)
-                    {
-                        player2Y -= 1;
-                    }
-                }
-                if (checkDirectionTrigger(ToggleButtons, DirectionDown))
-                { // k button (Down)
-                    if (player2Y + rectangleHeight < yPosMax)
-                    {
-                        player2Y += 1;
-                    }
-                }
+                // Update bat location
+                pingPongX += ballSpeedX;
+                pingPongY += ballSpeedY;
+                pingPongBallObject[0] = setSmallGraphicObject(0, pingPongX, pingPongY, 0, 0);
 
-                player1BatObject[0] = setLargeGraphicObject(0, player1X, player1Y, 0, 0);
-                player2BatObject[0] = setLargeGraphicObject(0, player2X, player2Y, 0, 1);
+                last_global = global;
             }
-
-            // Check if the ball touches the upper or lower edge of the screen
-            if (pingPongY < 0 || pingPongY + ballRadius > yPosMax)
-            {
-                ballSpeedY = -ballSpeedY;
-            }
-
-            // Player 1's bat check
-            if (collision(player1X, player1Y, pingPongX, pingPongY, rectangleWidth, rectangleHeight, ballRadius))
-            {
-                handleCollision(&ballSpeedX, &ballSpeedY, &pingPongX, player1X);
-            }
-
-            // Player 2's bat check
-            if (collision(player2X, player2Y, pingPongX, pingPongY, rectangleWidth, rectangleHeight, ballRadius))
-            {
-                handleCollision(&ballSpeedX, &ballSpeedY, &pingPongX, player2X);
-            }
-
-            // // Reset position if needed
-            if (pingPongX <= 0 || pingPongX + ballRadius*2 >= xPosMax)
-            {
-                srand(global);
-
-                // Randomize ball speed
-                ballSpeedX = minSpeed + (rand() / (float)RAND_MAX) * (maxSpeed - minSpeed);
-                ballSpeedY = minSpeed + (rand() / (float)RAND_MAX) * (maxSpeed - minSpeed);
-
-                // Reset ball position to the center
-                pingPongX = xPosMax / 2 - ballRadius / 2;
-                pingPongY = yPosMax / 2 - ballRadius / 2;
-
-                // volatile char *VIDEO_MEMORY = (volatile char *)(0x50000000 + 0xF4800);
-                // char *Buffer = malloc(32);
-                // strcpy(Buffer, "OS Started2");
-                // strcpy((char *)VIDEO_MEMORY, Buffer);
-                // *GRAPHICS_MODE = 0;  // 0: text mode/ 1: graphic mode
-            }
-
-            // Update bat location
-            pingPongX += ballSpeedX;
-            pingPongY += ballSpeedY;
-            pingPongBallObject[0] = setSmallGraphicObject(0, pingPongX, pingPongY, 0, 0);
-            
-            last_global = global;
         }
         countdown--;
         if (!countdown)
@@ -301,6 +315,93 @@ void createGraphicObject()
             {
                 pingPongBallCanvas[y * 16 + x] = 0; // Set pixel to 0 if it's outside the circle
             }
+        }
+    }
+}
+
+bool collision(int playerTopLeftX, int playerTopLeftY, int pingPongX, int pingPongY, int rectangleWidth, int rectangleHeight, int ballRadius)
+{
+    int playerCenterX = playerTopLeftX + rectangleWidth / 2;
+    int playerCenterY = playerTopLeftY + rectangleHeight / 2;
+    int ballCenterX = pingPongX + ballRadius;
+    int ballCenterY = pingPongY + ballRadius;
+
+    int dx = abs(ballCenterX - playerCenterX);
+    int dy = abs(ballCenterY - playerCenterY);
+
+    if (dx > (rectangleWidth / 2 + ballRadius))
+    {
+        return false;
+    }
+    if (dy > (rectangleHeight / 2 + ballRadius))
+    {
+        return false;
+    }
+
+    if (dx <= (rectangleWidth / 2))
+    {
+        return true;
+    }
+
+    if (dy <= (rectangleHeight / 2))
+    {
+        return true;
+    }
+
+    int cornerDistance_sq = (dx - rectangleWidth / 2) * (dx - rectangleWidth / 2) + (dy - rectangleHeight / 2) * (dy - rectangleHeight / 2);
+
+    return (cornerDistance_sq <= (ballRadius * ballRadius));
+}
+
+void handleCollision(float *speedX, float *speedY, float *pingPongX, int playerX)
+{
+    *speedX = -(*speedX);
+    *speedY = -(*speedY);
+
+    // Adjust the horizontal speed
+    if (*speedX < 0)
+    {
+        *speedX -= 0.05;
+    }
+    else
+    {
+        *speedX += 0.05;
+    }
+
+    // Adjust the ball's position to avoid multiple collisions (teleporting)
+    if (*speedX > 0 && *pingPongX < playerX + rectangleWidth)
+    {
+        *pingPongX = batXOffset + rectangleWidth;
+    }
+    if (*speedX < 0 && *pingPongX + ballRadius * 2 > playerX)
+    {
+        *pingPongX = xPosMax - batXOffset - rectangleWidth - ballRadius * 2;
+    }
+}
+
+void clearTextData() {
+    for (int i = 0; i < SCREEN_ROWS * SCREEN_COLS; ++i) {
+        VIDEO_MEMORY[i] = ' ';  // ASCII value for space
+    }
+}
+
+void showTextToLine(const char* text, int line) {
+    if (line < 0 || line >= SCREEN_ROWS) {
+        return; // Invalid line number
+    }
+
+    int textLen = strlen(text);
+    int middleCol = (SCREEN_COLS - textLen) / 2;
+    if (middleCol < 0) {
+        middleCol = 0; // Avoid negative starting position
+    }
+    int offset = line * SCREEN_COLS + middleCol;
+
+    for (int i = 0; i < textLen; ++i) {
+        if (middleCol + i < SCREEN_COLS) {
+            VIDEO_MEMORY[offset + i] = text[i];
+        } else {
+            break; // Avoid writing past the end of the screen
         }
     }
 }
