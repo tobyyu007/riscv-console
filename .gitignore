@@ -1,1 +1,8 @@
-.DS_Store
+# Ignore all files
+*
+
+# Except this file
+!/cartridge/
+!/firmware/
+
+

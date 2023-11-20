@@ -17,7 +17,7 @@ void initSpriteControlSystem(void) {
     memset(smallSpriteControlBitmap, 0, sizeof(smallSpriteControlBitmap));
 }
 
-int createControlSprite(SpriteSize size, uint32_t spriteControl) {
+int createControlSprite(SpriteSize size, uint32_t canvasId) {
     uint32_t *bitmap;
     size_t bitmapSize;
     size_t spriteSize;
@@ -52,14 +52,14 @@ int createControlSprite(SpriteSize size, uint32_t spriteControl) {
     }
 
     // Copy the uint32_t spriteControl to the spriteBase
-    spriteBase[index] = spriteControl;
+    spriteBase[index] = canvasId;
 
     setBitmap(bitmap, index);
 
     return index;
 }
 
-int controlSprite(SpriteSize size, uint32_t spriteControl, int spriteIndex){
+int controlSprite(SpriteSize size, uint32_t spriteControl, int objectId){
     uint32_t *bitmap;
     size_t bitmapSize;
     size_t spriteSize;
@@ -86,7 +86,7 @@ int controlSprite(SpriteSize size, uint32_t spriteControl, int spriteIndex){
         default:
             return -1; // Invalid sprite size
     }
-     spriteBase[spriteIndex] = spriteControl;
+     spriteBase[objectId] = spriteControl;
      return 1;
 }
 

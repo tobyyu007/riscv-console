@@ -1,5 +1,5 @@
 #include <stdint.h>
-#include <ManageSprite.h>
+#include "ManageSprite.h"
 #include "colors.h"
 
 volatile uint32_t *BACKGROUND_PALETTE_0 = (volatile uint32_t *)(0x500F0000);

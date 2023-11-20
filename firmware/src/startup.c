@@ -3,8 +3,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <ManageSprite.h>
-#include <ControlSprite.h>
+#include "ManageSprite.h"
+#include "ControlSprite.h"
 
 extern uint8_t _erodata[];
 extern uint8_t _data[];
@@ -109,9 +109,6 @@ void OtherThreadFunction(void *){
         }
     }
 }
-#define PALETTE_SIZE 0x400  // Size of each palette
-#define PALETTE_BASE_ADDR (0x500F2000)
-int PaletteId = 0;
 
 extern char *VIDEO_MEMORY;
 
@@ -130,21 +127,6 @@ uint32_t c_system_call(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg
     else if(4 == call){ // SwitchThread
         OtherThread = &arg0;
         SwitchThread(&MainThread,OtherThread);
-        return 1;
-    }
-    else if(5 == call){
-        MODE_REGISTER = arg0; // 0: text mode/ 1: graphic mode
-        return 1;
-    }
-    else if(6 == call){
-        // static unsigned int newPaletteId = 0;
-        volatile uint32_t *paletteAddr = (volatile uint32_t *)(PALETTE_BASE_ADDR + (PaletteId * PALETTE_SIZE));
-        // volatile uint32_t *paletteAddr = (volatile uint32_t *)(0x500F2000 + (PaletteId * 0x400));
-        // volatile uint32_t *paletteAddr = (volatile uint32_t *)(0x500F2000);
-        
-        paletteAddr[1] = arg0;
-        PaletteId++;
-
         return 1;
     }
     else if(30 == call){ // CreateControlSprite
@@ -173,6 +155,10 @@ uint32_t c_system_call(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg
 
 
         return result;
+    }
+    else if(60 == call){
+        MODE_REGISTER = arg0; // 0: text mode/ 1: graphic mode
+        return 1;
     }
     else if(100 == call){ // TestSendPointer
         uintptr_t address = arg0;

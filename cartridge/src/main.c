@@ -12,16 +12,14 @@ uint32_t GetController(void);
 uint32_t InitThread(void);
 uint32_t SwitchThread(uint32_t);
 uint32_t ChangeMode(uint32_t);
-uint32_t MediumPalette(uint32_t);
-uint32_t MediumSprite(uint32_t, uint8_t*, uint32_t);
+
+uint32_t CreateSprite(uint32_t, uint8_t*, uint32_t);
 uint32_t FreeSprite(uint32_t, uint32_t);
 uint32_t MediumControl(uint8_t palette, int16_t x, int16_t y, uint8_t z, uint8_t index);
 void fillOutData();
 
-volatile uint32_t *MEDIUM_CONTROL = (volatile uint32_t *)(0x500F5F00);
-
-volatile int global = 42;
-volatile uint32_t controller_status = 0;
+volatile uint32_t global;
+volatile uint32_t controller_status;
 uint32_t thread_addr;
 
 uint8_t spriteDataSquare[MEDIUM_SPRITE_SIZE * MEDIUM_SPRITE_SIZE]; //Create data buffer
@@ -29,6 +27,8 @@ uint8_t spriteDataCircle[MEDIUM_SPRITE_SIZE * MEDIUM_SPRITE_SIZE];
 
 
 int main() {
+    global = GetTicks();
+    controller_status = GetController();
     int countdown = 1;
     int a = 4;
     int b = 12;
@@ -36,11 +36,10 @@ int main() {
     int x_pos = 0;
 
     fillOutData(); //Fill in the data buffer
-    uint32_t square =  MediumSprite(MEDIUM_SPRITE, spriteDataSquare, 1024);
-    uint32_t circle =  MediumSprite(MEDIUM_SPRITE, spriteDataCircle, 1024);
-    // uint32_t free = FreeSprite(MEDIUM_SPRITE, square);
+    uint32_t square =  createCanvas(MEDIUM_SPRITE, spriteDataSquare, 1024);
+    uint32_t circle =  createCanvas(MEDIUM_SPRITE, spriteDataCircle, 1024);
 
-    // MEDIUM_CONTROL[0] = MediumControl(FULLY_OPAQUE, 0, 0, 0, square);  // Initialize the Square Object TBD
+
     uint32_t medium_control_id =  createObject(MEDIUM_SPRITE,FULLY_OPAQUE, 0, 0, 0, square);
     
     uint32_t mode = ChangeMode(1);  // 0: text mode/ 1: graphic mode
@@ -70,11 +69,9 @@ int main() {
                         x_pos++;
                     }
                 }
-                // MEDIUM_CONTROL[0] = MediumControl(FULLY_OPAQUE, (x_pos & 0x3F)<<3, (x_pos>>6)<<3, 0, square);
                 controlObject(MEDIUM_SPRITE,FULLY_OPAQUE, (x_pos & 0x3F)<<3, (x_pos>>6)<<3, 0, square, medium_control_id);
                 if(controller_status & 0x10){
                     // thread_addr = InitThread();
-                    // MEDIUM_CONTROL[0] = MediumControl(SEMI_OPAQUE_60, (x_pos & 0x3F)<<3, (x_pos>>6)<<3, 0, circle);
                     controlObject(MEDIUM_SPRITE,SEMI_OPAQUE_60, (x_pos & 0x3F)<<3, (x_pos>>6)<<3, 0, circle, medium_control_id);
 
                 }

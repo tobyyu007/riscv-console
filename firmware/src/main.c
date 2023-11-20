@@ -2,9 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include <ManageSprite.h>
-#include <ControlSprite.h>
-#include <colors.h>
+#include "ManageSprite.h"
+#include "ControlSprite.h"
+#include "colors.h"
 
 volatile int global = 42;
 volatile uint32_t controller_status = 0;
