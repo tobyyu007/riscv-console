@@ -1,0 +1,165 @@
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+#include <memory.h>
+#include "manage_sprite.h"
+#include "colors.h"
+
+volatile int global = 42;
+volatile uint32_t controller_status = 0;
+uint32_t GetTicks(void);
+uint32_t GetController(void);
+uint32_t InitThread(void);
+uint32_t SwitchThread(uint32_t);
+uint32_t TestSendPointer(uintptr_t);
+
+volatile char *VIDEO_MEMORY = (volatile char *)(0x50000000 + 0xF4800);
+volatile uint8_t *MEDIUM_DATA_SQUARE = (volatile uint8_t *)(0x500D0000);
+volatile uint8_t *MEDIUM_DATA_CIRCLE = (volatile uint8_t *)(0x500D0400);
+volatile uint32_t *MEDIUM_PALETTE_PINK = (volatile uint32_t *)(0x500F2000);
+volatile uint32_t *MEDIUM_PALETTE_WHITE = (volatile uint32_t *)(0x500F2400);
+volatile uint32_t *MEDIUM_CONTROL = (volatile uint32_t *)(0x500F5F00);
+volatile uint32_t *MODE_REGISTER = (volatile uint32_t *)(0x500F6780);
+volatile uint32_t *INTERRUPT_PENDING_REGISTER = (volatile uint32_t * )(0x40000004);
+volatile uint32_t *INTERRUPT_ENABLE_REGISTER = (volatile uint32_t *)(0x40000000);
+
+uint32_t MediumControl(uint8_t palette, int16_t x, int16_t y, uint8_t z, uint8_t index);
+
+uint32_t thread_addr;
+
+uint8_t spriteControlSquare;
+uint8_t spriteControlCircle;
+
+#define CMIE_BIT 2
+void fillOutData();
+int main() {
+    int countdown = 1;
+    int a = 4;
+    int b = 12;
+    int last_global = 42;
+    int x_pos = 0;
+    fillOutData();
+    MEDIUM_PALETTE_PINK[1] = 0xFFFF00FF; // A R G B
+    MEDIUM_PALETTE_WHITE[1] = 0xFFFFFFFF; // A R G B
+    MEDIUM_CONTROL[0] = MediumControl(0, 0, 0, 0, 0);  // Square
+    int squareIndex = createObject(int dataId, int palette, int x, int y, int z)
+
+
+    *MODE_REGISTER = 0; // 0: text mode/ 1: graphic mode
+    int currentIndex = 0;
+
+    // test TestSendPointer
+    char *Buffer = malloc(32);
+    strcpy(Buffer, "Buffer address:                         ");
+    uint32_t address = TestSendPointer((uintptr_t)Buffer);
+
+    
+    while (1) {
+        int c = a + b + global;
+        if(*INTERRUPT_PENDING_REGISTER & (1 << CMIE_BIT)){
+            if (currentIndex == 0){
+                MEDIUM_CONTROL[0] = MediumControl(1, (x_pos & 0x3F)<<3, (x_pos>>6)<<3, 0, 1);
+                currentIndex = 1;
+            }
+            else{
+                MEDIUM_CONTROL[0] = MediumControl(0, (x_pos & 0x3F)<<3, (x_pos>>6)<<3, 0, 0);
+                currentIndex = 0;
+            }
+            *INTERRUPT_PENDING_REGISTER |= (1 << CMIE_BIT);
+        }
+
+        if(global != last_global){
+            if(controller_status){
+                
+                VIDEO_MEMORY[x_pos] = ' ';
+                if(controller_status & 0x1){
+                    if(x_pos & 0x3F){
+                        x_pos--;
+                    }
+                }
+                if(controller_status & 0x2){
+                    if(x_pos >= 0x40){
+                        x_pos -= 0x40;
+                    }
+                }
+                if(controller_status & 0x4){
+                    if(x_pos < 0x8C0){
+                        x_pos += 0x40;
+                    }
+                }
+                if(controller_status & 0x8){
+                    if((x_pos & 0x3F) != 0x3F){
+                        x_pos++;
+                    }
+                }
+                if (currentIndex == 1){
+                    MEDIUM_CONTROL[0] = MediumControl(1, (x_pos & 0x3F)<<3, (x_pos>>6)<<3, 0, 1);
+                }
+                else{
+                    MEDIUM_CONTROL[0] = MediumControl(0, (x_pos & 0x3F)<<3, (x_pos>>6)<<3, 0, 0);
+                }
+
+                if(controller_status & 0x10){
+                    thread_addr = InitThread();
+                    
+                    MEDIUM_CONTROL[0] = MediumControl(1, (x_pos & 0x3F)<<3, (x_pos>>6)<<3, 0, 1);
+                    
+                }
+                if(controller_status & 0x20){
+                    uint32_t thread_id = SwitchThread(thread_addr);
+                    
+                    MEDIUM_CONTROL[0] = MediumControl(0, (x_pos & 0x3F)<<3, (x_pos>>6)<<3, 0, 0);
+                    
+                }
+            }
+            last_global = global;
+        }
+        countdown--;
+        if(!countdown){
+            global++;
+            controller_status = (*((volatile uint32_t *)0x40000018));
+            countdown = 1000;
+        }
+        // *INTERRUPT_PENDING_REGISTER &= 0x02;  // Disable VIP Pending
+    }
+    return 0;
+}
+
+uint32_t MediumControl(uint8_t palette, int16_t x, int16_t y, uint8_t z, uint8_t index){
+    return (((uint32_t)index)<<24) | (((uint32_t)z)<<21) | (((uint32_t)y+32)<<12) | (((uint32_t)x+32)<<2) | (palette & 0x3);
+}
+
+void fillOutData(){
+    // Fill out square data
+    for(int y = 0; y < 32; y++){
+        for(int x = 0; x < 32; x++){
+            if(y%2==0){
+                if(x%2==0) MEDIUM_DATA_SQUARE[y*32+x] = 1;
+            }
+            else{
+                if(x%2==1) MEDIUM_DATA_SQUARE[y*32+x] = 1;
+            }
+            
+        }
+    }
+
+    // Fill out circle data
+    int centerX = 16;  // X-coordinate of the center of the circle
+    int centerY = 16;  // Y-coordinate of the center of the circle
+    int radius = 12;   // Radius of the circle
+
+    for (int y = 0; y < 32; y++) {
+        for (int x = 0; x < 32; x++) {
+            int dx = x - centerX;
+            int dy = y - centerY;
+            int distance = dx * dx + dy * dy; // Calculate squared distance to the center
+
+            if (distance <= radius * radius) {
+                MEDIUM_DATA_CIRCLE[y * 32 + x] = 1; // Set pixel to 1 if it's inside the circle
+            } else {
+                MEDIUM_DATA_CIRCLE[y * 32 + x] = 0; // Set pixel to 0 if it's outside the circle
+            }
+        }
+    }
+}

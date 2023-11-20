@@ -1,5 +1,10 @@
 #include <stdint.h>
 #include <stddef.h>
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <ManageSprite.h>
+#include <ControlSprite.h>
 
 extern uint8_t _erodata[];
 extern uint8_t _data[];
@@ -39,7 +44,7 @@ __attribute__((always_inline)) inline void csr_disable_interrupts(void){
 #define CONTROLLER      (*((volatile uint32_t *)0x40000018))
 #define INTERRUPT_ENABLE_REGISTER (*((volatile uint32_t *)0x40000000))
 #define INTERRUPT_PENDING_REGISTER (*((volatile uint32_t *)0x40000004))
-
+#define MODE_REGISTER     (*((volatile uint32_t *)0x500F6780))
 #define VIE_BIT 1
 #define CMIE_BIT 2
 volatile uint32_t video_interrupt_count = 0;
@@ -64,7 +69,7 @@ void init(void){
     MTIMECMP_HIGH = 0;
 
     // INTERRUPT_ENABLE_REGISTER |= (1 << VIE_BIT) | (1 << CMIE_BIT);
-    INTERRUPT_ENABLE_REGISTER |= (1 << CMIE_BIT);
+    // INTERRUPT_ENABLE_REGISTER |= (1 << CMIE_BIT);
 
 }
 
@@ -104,25 +109,77 @@ void OtherThreadFunction(void *){
         }
     }
 }
+#define PALETTE_SIZE 0x400  // Size of each palette
+#define PALETTE_BASE_ADDR (0x500F2000)
+int PaletteId = 0;
+
+extern char *VIDEO_MEMORY;
 
 uint32_t c_system_call(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg3, uint32_t arg4, uint32_t call){
-    if(1 == call){
+    if(1 == call){ // GetTicks
         return global;
     }
-    else if(2 == call){
+    else if(2 == call){ // GetController
         return controller_status;
     }
-    else if(3 == call){
+    else if(3 == call){ // InitThread
         uint32_t OtherThreadStack[128];
         MainThread = InitThread(OtherThreadStack + 128, OtherThreadFunction, NULL);
         return *MainThread;
     }
-    else if(4 == call){
+    else if(4 == call){ // SwitchThread
         OtherThread = &arg0;
         SwitchThread(&MainThread,OtherThread);
+        return 1;
+    }
+    else if(5 == call){
+        MODE_REGISTER = arg0; // 0: text mode/ 1: graphic mode
+        return 1;
+    }
+    else if(6 == call){
+        // static unsigned int newPaletteId = 0;
+        volatile uint32_t *paletteAddr = (volatile uint32_t *)(PALETTE_BASE_ADDR + (PaletteId * PALETTE_SIZE));
+        // volatile uint32_t *paletteAddr = (volatile uint32_t *)(0x500F2000 + (PaletteId * 0x400));
+        // volatile uint32_t *paletteAddr = (volatile uint32_t *)(0x500F2000);
+        
+        paletteAddr[1] = arg0;
+        PaletteId++;
+
+        return 1;
+    }
+    else if(30 == call){ // CreateControlSprite
+        int result = createControlSprite(arg0, arg1);
+
+        return result;
+    }
+    else if(31 == call){ // FreeControlSprite
+        int result = freeControlSprite(arg0, arg1);
+
+        return result;
+    }
+    else if(32 == call){
+        int result = controlSprite(arg0, arg1, arg2);
+
+        return result;
+    }
+    else if(50 == call){
+        
+        int result = createSprite(arg0,(const uint8_t *)(uintptr_t)arg1, arg2);
+        
+        return result;
+    }
+    else if(51 == call){
+        int result = freeSprite(arg0, arg1);
+
+
+        return result;
+    }
+    else if(100 == call){ // TestSendPointer
+        uintptr_t address = arg0;
+        char *Buffer = (char *)address;
+        strcpy((char *)VIDEO_MEMORY, Buffer);
         return 1;
     }
     return -1;
 
 }
-

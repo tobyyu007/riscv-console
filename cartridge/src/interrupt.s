@@ -1,5 +1,5 @@
 .section .text, "ax"
-.global _interrupt_handler, GetTicks, GetController, InitThread, SwitchThread
+.global _interrupt_handler, GetTicks, GetController, InitThread, SwitchThread, ChangeMode, MediumPalette, CreateControlSprite, FreeControlSprite, ControlSprite, MediumSprite, FreeSprite, TestSendPointer
 _interrupt_handler:
     addi	sp,sp,-40
     sw	    ra,36(sp)
@@ -37,4 +37,28 @@ InitThread:
     ecall
 SwitchThread:
     li a5, 4
+    ecall
+ChangeMode:
+    li a5, 5
+    ecall
+MediumPalette:
+    li a5, 6
+    ecall
+CreateControlSprite:
+    li a5, 30
+    ecall
+FreeControlSprite:
+    li a5, 31
+    ecall
+ControlSprite:
+    li a5, 32
+    ecall
+MediumSprite:
+    li a5, 50
+    ecall
+FreeSprite:
+    li a5, 51
+    ecall
+TestSendPointer:
+    li a5, 100
     ecall
