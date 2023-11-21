@@ -45,7 +45,7 @@ void init(void){
     while(Base < End){
         *Base++ = *Source++;
     }
-    Base = _bss; 
+    Base = _bss;
     End = _ebss;
     while(Base < End){
         *Base++ = 0;
@@ -53,7 +53,7 @@ void init(void){
 
     csr_write_mie(0x888);       // Enable all interrupt soruces
     csr_enable_interrupts();    // Global interrupt enable
-    MTIMECMP_LOW = 1;   // 64 bits register. If greater than MTIMECMP, trigger a time clock
+    MTIMECMP_LOW = 1;
     MTIMECMP_HIGH = 0;
 }
 

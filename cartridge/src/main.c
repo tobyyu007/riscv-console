@@ -200,7 +200,7 @@ int main()
         if (!countdown)
         {
             global++;
-            countdown = 250;
+            countdown = 10000;
         }
     }
     return 0;

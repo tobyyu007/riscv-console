@@ -3,7 +3,6 @@
 #include "GUITextTag.h"
 #include <gtk/gtk.h>
 #include <string>
-#include <algorithm>
 
 class CGUITextTagGTK3 : public CGUITextTag{
     friend class CGUITextBufferGTK3;
