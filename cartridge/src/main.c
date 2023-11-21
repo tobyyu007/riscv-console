@@ -3,30 +3,18 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdbool.h>
-#include <event.h>
+#include "event.h"
+#include "graphic.h"
+#include "memory.h"
 
 volatile int global = 42;
 
-// Palettes
-volatile uint32_t *largePaletteWhite = (volatile uint32_t *)(0x500F1000);
-volatile uint32_t *largePaletteOrange = (volatile uint32_t *)(0x500F1400);
-volatile uint32_t *smallPaletteOrange = (volatile uint32_t *)(0x500F3000);
-
 // Canvas
-volatile uint8_t *player1RectangleCanvas = (volatile uint8_t *)(0x50090000);
-volatile uint8_t *player2RectangleCanvas = (volatile uint8_t *)(0x50091000);
-volatile uint8_t *pingPongBallCanvas = (volatile uint8_t *)(0x500E0000);
-
-// Objects
-volatile uint32_t *player1BatObject = (volatile uint32_t *)(0x500F5B00);
-volatile uint32_t *player2BatObject = (volatile uint32_t *)(0x500F5B04);
-volatile uint32_t *pingPongBallObject = (volatile uint32_t *)(0x500F6300);
+uint8_t batCanvas[LARGE_SPRITE_SIZE*LARGE_SPRITE_SIZE];
+uint8_t ballCanvas[SMALL_SPRITE_SIZE*SMALL_SPRITE_SIZE];
 
 // Text Data
 volatile char *VIDEO_MEMORY = (volatile char *)(0x500F4800);
-
-// Graphic setting
-volatile uint32_t *GRAPHICS_MODE = (volatile uint32_t *)(0x500F6780);
 
 // Screen Resolution
 int xPosMax = 512;
@@ -48,7 +36,7 @@ float maxSpeed = 0.5; // Maximum speed of the ball
 
 uint32_t setLargeGraphicObject(uint8_t palette, int16_t x, int16_t y, uint8_t z, uint8_t canvasIndex);
 uint32_t setSmallGraphicObject(uint8_t palette, int16_t x, int16_t y, uint8_t z, uint8_t canvasIndex);
-void createGraphicObject();
+void fillCanvas();
 
 bool collision(int playerTopLeftX, int playerTopLeftY, int pingPongX, int pingPongY, int rectangleWidth, int rectangleHeight, int ballRadius);
 void handleCollision(float *speedX, float *speedY, float *pingPongX, int playerX);
@@ -59,7 +47,7 @@ int main()
 {
     int countdown = 1;
     int last_global = 42;
-    *GRAPHICS_MODE = 1; // 0: text mode/ 1: graphic mode
+    displayMode(GRAPHICS_MODE);
     clearTextData();
 
     // Player 1 and 2 starting position
@@ -72,25 +60,24 @@ int main()
     float pingPongX = xPosMax / 2 - ballRadius / 2;
     float pingPongY = yPosMax / 2 - ballRadius / 2;
 
-    // Set palettes
-    largePaletteWhite[1] = 0xFFFFFFFF;  // A R G B
-    largePaletteOrange[1] = 0xFFF05E1C; // A R G B
-    smallPaletteOrange[1] = 0xFFF05E1C; // A R G B
+    // fill in Canvas bufffer
+    fillCanvas();
+    // create canvas 
+    uint32_t batCanvasID = createCanvas(LARGE_SPRITE, batCanvas, LARGE_SPRITE_SIZE*LARGE_SPRITE_SIZE);
+    uint32_t ballCanvasID = createCanvas(SMALL_SPRITE, ballCanvas, SMALL_SPRITE_SIZE*SMALL_SPRITE_SIZE);
 
-    createGraphicObject();
-
-    // Show objects
-    player1BatObject[0] = setLargeGraphicObject(0, player1X, player1Y, 0, 0);     // Player 1
-    player2BatObject[0] = setLargeGraphicObject(0, player2X, player2Y, 0, 1);     // Player 2
-    pingPongBallObject[0] = setSmallGraphicObject(0, pingPongX, pingPongY, 0, 0); // Ping Pong Ball
-
+    // create object
+    uint32_t player1BatObjectID = createObject(LARGE_SPRITE, FULLY_OPAQUE, player1X, player1Y, 0, batCanvasID);
+    uint32_t player2BatObjectID = createObject(LARGE_SPRITE, FULLY_OPAQUE, player2X, player2Y, 0, batCanvasID);
+    uint32_t ballObjectID = createObject(SMALL_SPRITE, FULLY_OPAQUE, pingPongX, pingPongY, 0, ballCanvasID);
+    
     // Set random speed for the ball
     srand(global);
     float ballSpeedX = minSpeed + (rand() / (float)RAND_MAX) * (maxSpeed - minSpeed);
     float ballSpeedY = minSpeed + (rand() / (float)RAND_MAX) * (maxSpeed - minSpeed);
 
     bool start = false;
-    char *Buffer = malloc(32);
+    char *Buffer = AllocateMemory(32);
 
     while (1)
     {
@@ -101,15 +88,13 @@ int main()
             {
                 strcpy(Buffer, "Press D and J to start");
                 showTextToLine(Buffer, SCREEN_ROWS/2);
-                //strcpy((char *)VIDEO_MEMORY, Buffer);
-                *GRAPHICS_MODE = 0; // 0: text mode/ 1: graphic mode
+                displayMode(TEXT_MODE); // 0: text mode/ 1: graphic mode
 
                 // enableCMDInterrupt();
                 if (checkDirectionTrigger(DirectionPad, DirectionRight) && checkDirectionTrigger(ToggleButtons, DirectionLeft))
                 {
                     start = true;
-                    *GRAPHICS_MODE = 1; // 0: text mode/ 1: graphic mode
-                    // disableCMDInterrupt();
+                    displayMode(GRAPHICS_MODE);
                     clearTextData();
                 }
             }
@@ -147,9 +132,9 @@ int main()
                             player2Y += 1;
                         }
                     }
-
-                    player1BatObject[0] = setLargeGraphicObject(0, player1X, player1Y, 0, 0);
-                    player2BatObject[0] = setLargeGraphicObject(0, player2X, player2Y, 0, 1);
+                    // control players
+                    controlObject(LARGE_SPRITE, FULLY_OPAQUE, player1X, player1Y, 0, batCanvasID,player1BatObjectID);
+                    controlObject(LARGE_SPRITE, FULLY_OPAQUE, player2X, player2Y, 0, batCanvasID,player2BatObjectID);
                 }
 
                 // Check if the ball touches the upper or lower edge of the screen
@@ -170,7 +155,7 @@ int main()
                     handleCollision(&ballSpeedX, &ballSpeedY, &pingPongX, player2X);
                 }
 
-                // // Reset position if needed
+                // Reset position if needed
                 if (pingPongX <= 0 || pingPongX + ballRadius * 2 >= xPosMax)
                 {
                     if(pingPongX <= 0){
@@ -186,28 +171,10 @@ int main()
                         showTextToLine(Buffer, SCREEN_ROWS/2 + 1);
                     }
 
-                    *GRAPHICS_MODE = 0;  // 0: text mode/ 1: graphic mode
-
-                    //enableCMDInterrupt();
-                    // if (CMDPressed())
-                    // {   
-                    //     clearTextData();
-                    //     //disableCMDInterrupt();
-                    //     srand(global);
-
-                    //     // Randomize ball speed
-                    //     ballSpeedX = minSpeed + (rand() / (float)RAND_MAX) * (maxSpeed - minSpeed);
-                    //     ballSpeedY = minSpeed + (rand() / (float)RAND_MAX) * (maxSpeed - minSpeed);
-
-                    //     // Reset ball position to the center
-                    //     pingPongX = xPosMax / 2 - ballRadius / 2;
-                    //     pingPongY = yPosMax / 2 - ballRadius / 2;
-                    //     *GRAPHICS_MODE = 1;  // 0: text mode/ 1: graphic mode
-                    // }
+                    displayMode(TEXT_MODE);
 
                     if(checkDirectionTrigger(DirectionPad, DirectionRight) && checkDirectionTrigger(ToggleButtons, DirectionLeft)){
                         clearTextData();
-                        //disableCMDInterrupt();
                         srand(global);
 
                         // Randomize ball speed
@@ -217,15 +184,15 @@ int main()
                         // Reset ball position to the center
                         pingPongX = xPosMax / 2 - ballRadius / 2;
                         pingPongY = yPosMax / 2 - ballRadius / 2;
-                        *GRAPHICS_MODE = 1;  // 0: text mode/ 1: graphic mode
+                        displayMode(GRAPHICS_MODE);
                     }
                 }
 
-                // Update bat location
+                // Update ball location
                 pingPongX += ballSpeedX;
                 pingPongY += ballSpeedY;
-                pingPongBallObject[0] = setSmallGraphicObject(0, pingPongX, pingPongY, 0, 0);
-
+                controlObject(SMALL_SPRITE, FULLY_OPAQUE, pingPongX, pingPongY, 0, ballCanvasID,ballObjectID);
+                
                 last_global = global;
             }
         }
@@ -233,7 +200,7 @@ int main()
         if (!countdown)
         {
             global++;
-            countdown = 10000;
+            countdown = 250;
         }
     }
     return 0;
@@ -250,48 +217,14 @@ uint32_t setSmallGraphicObject(uint8_t palette, int16_t x, int16_t y, uint8_t z,
     return (((uint32_t)canvasIndex) << 24) | (((uint32_t)z) << 21) | (((uint32_t)y + 16) << 12) | (((uint32_t)x + 16) << 2) | (palette & 0x3);
 }
 
-extern char _heap_base[];
-extern char _stack[];
-
-char *_sbrk(int numbytes)
+void fillCanvas()
 {
-    static char *heap_ptr = NULL;
-    char *base;
-    if (heap_ptr == NULL)
-    {
-        heap_ptr = (char *)&_heap_base;
-    }
-
-    if ((heap_ptr + numbytes) <= _stack)
-    {
-        base = heap_ptr;
-        heap_ptr += numbytes;
-        return (base);
-    }
-    else
-    {
-        // erro = ENOMEM;
-        return NULL;
-    }
-}
-
-void createGraphicObject()
-{
-    // Fill out Player 1 Rectangle data (large canvas)
+    // Fill out bat canvas (large canvas)
     for (int y = 0; y < rectangleHeight; y++) // Iterate over the height of the rectangle
     {
         for (int x = 0; x < rectangleWidth; x++) // Iterate over the width of the rectangle
         {
-            player1RectangleCanvas[y * 64 + x] = 1;
-        }
-    }
-
-    // Fill out Player 2 Rectangle data (large canvas)
-    for (int y = 0; y < rectangleHeight; y++) // Iterate over the height of the rectangle
-    {
-        for (int x = 0; x < rectangleWidth; x++) // Iterate over the width of the rectangle
-        {
-            player2RectangleCanvas[y * 64 + x] = 1;
+            batCanvas[y * LARGE_SPRITE_SIZE + x] = WHITE;
         }
     }
 
@@ -299,9 +232,9 @@ void createGraphicObject()
     int centerX = 8; // X-coordinate of the center of the circle
     int centerY = 8; // Y-coordinate of the center of the circle
 
-    for (int y = 0; y < 16; y++)
+    for (int y = 0; y < SMALL_SPRITE_SIZE; y++)
     {
-        for (int x = 0; x < 16; x++)
+        for (int x = 0; x < SMALL_SPRITE_SIZE; x++)
         {
             int dx = x - centerX;
             int dy = y - centerY;
@@ -309,11 +242,11 @@ void createGraphicObject()
 
             if (distance <= ballRadius * ballRadius)
             {
-                pingPongBallCanvas[y * 16 + x] = 1; // Set pixel to 1 if it's inside the circle
+                ballCanvas[y * SMALL_SPRITE_SIZE + x] = ORANGE; // Set pixel to 1 if it's inside the circle
             }
             else
             {
-                pingPongBallCanvas[y * 16 + x] = 0; // Set pixel to 0 if it's outside the circle
+                ballCanvas[y * SMALL_SPRITE_SIZE + x] = NO_COLOR; // Set pixel to 0 if it's outside the circle
             }
         }
     }

@@ -44,3 +44,12 @@ int freeCanvas(SpriteSize size, int canvasId){
     int sucessFree = FreeSprite(size, canvasId);
     return sucessFree;
 }
+
+void displayMode(DisplayMode mode){
+    if(mode == GRAPHICS_MODE){
+        ChangeMode(1);
+    }
+    else if (mode == TEXT_MODE){
+        ChangeMode(0);
+    }
+}
