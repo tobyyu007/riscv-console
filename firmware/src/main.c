@@ -27,7 +27,7 @@ int main() {
     char *Buffer = malloc(128);
     strcpy(Buffer, "OS Started");
     strcpy((char *)VIDEO_MEMORY, Buffer);
-    *MODE_REGISTER = 0; // 0: text mode/ 1: graphic mode 
+
     initializePalette();
     initSpriteSystem();
     initSpriteControlSystem();
