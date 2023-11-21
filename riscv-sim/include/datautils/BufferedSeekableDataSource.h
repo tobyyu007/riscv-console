@@ -4,7 +4,6 @@
 
 #include <cstdint>
 #include <vector>
-#include <cstring>
 #include "SeekableDataSource.h"
 
 class CBufferedSeekableDataSource : public CSeekableDataSource{

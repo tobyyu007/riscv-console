@@ -25,4 +25,3 @@ _interrupt_handler:
     lw	    a5,0(sp)
     addi    sp,sp,40
     mret
-    
