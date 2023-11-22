@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdbool.h>
+
 #include "event.h"
 #include "graphic.h"
 #include "memory.h"
@@ -10,8 +11,8 @@
 volatile int global = 42;
 
 // Canvas
-uint8_t batCanvas[LARGE_SPRITE_SIZE*LARGE_SPRITE_SIZE];
-uint8_t ballCanvas[SMALL_SPRITE_SIZE*SMALL_SPRITE_SIZE];
+uint8_t batCanvas[LARGE_SPRITE_SIZE * LARGE_SPRITE_SIZE];
+uint8_t ballCanvas[SMALL_SPRITE_SIZE * SMALL_SPRITE_SIZE];
 
 // Text Data
 volatile char *VIDEO_MEMORY = (volatile char *)(0x500F4800);
@@ -25,20 +26,22 @@ int yPosMax = 288;
 #define SCREEN_ROWS 36
 
 // Rectangle size
-int rectangleHeight = 64; // Height of the rectangle
+int rectangleHeight = 60; // Height of the rectangle (must be 6's multiple)
 int rectangleWidth = 12;  // Width of the rectangle
 int batXOffset = 20;      // Offset for the bat in the X axis
 
 // Ball size
-int ballRadius = 8;   // Radius of the ball
-float minSpeed = 0.3; // Minimum speed of the ball
-float maxSpeed = 0.5; // Maximum speed of the ball
+int ballRadius = 8;      // Radius of the ball
+float minSpeedX = 0.5;   // Minimum X axis speed of the ball
+float maxSpeedX = 0.7;   // Maximum X axis speed of the ball
+float minSpeedY = -0.75; // Minimum Y axis speed of the ball
+float maxSpeedY = 0.75;  // Maximum Y axis speed of the ball
 
 void fillCanvas();
-bool collision(int playerTopLeftX, int playerTopLeftY, int pingPongX, int pingPongY, int rectangleWidth, int rectangleHeight, int ballRadius);
-void handleCollision(float *speedX, float *speedY, float *pingPongX, float *pingPongY, int batX, int batY)
+bool checkCollision(int playerTopLeftX, int playerTopLeftY, int pingPongX, int pingPongY, int rectangleWidth, int rectangleHeight, int ballRadius);
+void handleCollision(float *speedX, float *speedY, float *pingPongX, float *pingPongY, int batX, int batY);
 void clearTextData();
-void showTextToLine(const char* text, int line);
+void showTextToLine(const char *text, int line);
 
 int main()
 {
@@ -59,19 +62,19 @@ int main()
 
     // fill in Canvas bufffer
     fillCanvas();
-    // create canvas 
-    uint32_t batCanvasID = createCanvas(LARGE_SPRITE, batCanvas, LARGE_SPRITE_SIZE*LARGE_SPRITE_SIZE);
-    uint32_t ballCanvasID = createCanvas(SMALL_SPRITE, ballCanvas, SMALL_SPRITE_SIZE*SMALL_SPRITE_SIZE);
+    // create canvas
+    uint32_t batCanvasID = createCanvas(LARGE_SPRITE, batCanvas, LARGE_SPRITE_SIZE * LARGE_SPRITE_SIZE);
+    uint32_t ballCanvasID = createCanvas(SMALL_SPRITE, ballCanvas, SMALL_SPRITE_SIZE * SMALL_SPRITE_SIZE);
 
     // create object
     uint32_t player1BatObjectID = createObject(LARGE_SPRITE, FULLY_OPAQUE, player1X, player1Y, 0, batCanvasID);
     uint32_t player2BatObjectID = createObject(LARGE_SPRITE, FULLY_OPAQUE, player2X, player2Y, 0, batCanvasID);
     uint32_t ballObjectID = createObject(SMALL_SPRITE, FULLY_OPAQUE, pingPongX, pingPongY, 0, ballCanvasID);
-    
+
     // Set random speed for the ball
     srand(global);
-    float ballSpeedX = minSpeed + (rand() / (float)RAND_MAX) * (maxSpeed - minSpeed);
-    float ballSpeedY = minSpeed + (rand() / (float)RAND_MAX) * (maxSpeed - minSpeed);
+    float ballSpeedX = minSpeedX + (rand() / (float)RAND_MAX) * (maxSpeedX - minSpeedX);
+    float ballSpeedY = minSpeedY + (rand() / (float)RAND_MAX) * (maxSpeedY - minSpeedY);
 
     bool start = false;
     char *Buffer = AllocateMemory(32);
@@ -80,11 +83,24 @@ int main()
     {
         if (global != last_global)
         {
+            if (checkDirectionTrigger(DirectionPad, DirectionLeft))
+            {
+                displayMode(GRAPHICS_MODE);
+            }
+
+            if (checkDirectionTrigger(ToggleButtons, DirectionRight))
+            {
+                // char *Buffer = AllocateMemory(32);
+                displayMode(TEXT_MODE);
+                sprintf(Buffer, "hitSegment speed is: %f", ballSpeedY);
+                showTextToLine(Buffer, SCREEN_ROWS / 2);
+            }
+
             // Check if the game is started
             if (start == false)
             {
                 strcpy(Buffer, "Press D and J to start");
-                showTextToLine(Buffer, SCREEN_ROWS/2);
+                showTextToLine(Buffer, SCREEN_ROWS / 2);
                 displayMode(TEXT_MODE); // 0: text mode/ 1: graphic mode
 
                 // enableCMDInterrupt();
@@ -130,8 +146,8 @@ int main()
                         }
                     }
                     // control players
-                    controlObject(LARGE_SPRITE, FULLY_OPAQUE, player1X, player1Y, 0, batCanvasID,player1BatObjectID);
-                    controlObject(LARGE_SPRITE, FULLY_OPAQUE, player2X, player2Y, 0, batCanvasID,player2BatObjectID);
+                    controlObject(LARGE_SPRITE, FULLY_OPAQUE, player1X, player1Y, 0, batCanvasID, player1BatObjectID);
+                    controlObject(LARGE_SPRITE, FULLY_OPAQUE, player2X, player2Y, 0, batCanvasID, player2BatObjectID);
                 }
 
                 // Check if the ball touches the upper or lower edge of the screen
@@ -141,13 +157,13 @@ int main()
                 }
 
                 // Player 1's bat check
-                if (collision(player1X, player1Y, pingPongX, pingPongY, rectangleWidth, rectangleHeight, ballRadius))
+                if (checkCollision(player1X, player1Y, pingPongX, pingPongY, rectangleWidth, rectangleHeight, ballRadius))
                 {
                     handleCollision(&ballSpeedX, &ballSpeedY, &pingPongX, &pingPongY, player1X, player1Y);
                 }
 
                 // Player 2's bat check
-                if (collision(player2X, player2Y, pingPongX, pingPongY, rectangleWidth, rectangleHeight, ballRadius))
+                if (checkCollision(player2X, player2Y, pingPongX, pingPongY, rectangleWidth, rectangleHeight, ballRadius))
                 {
                     handleCollision(&ballSpeedX, &ballSpeedY, &pingPongX, &pingPongY, player2X, player2Y);
                 }
@@ -155,28 +171,31 @@ int main()
                 // Reset position if needed
                 if (pingPongX <= 0 || pingPongX + ballRadius * 2 >= xPosMax)
                 {
-                    if(pingPongX <= 0){
+                    if (pingPongX <= 0)
+                    {
                         strcpy(Buffer, "Player 2 wins!");
-                        showTextToLine(Buffer, SCREEN_ROWS/2 - 1);
+                        showTextToLine(Buffer, SCREEN_ROWS / 2 - 1);
                         strcpy(Buffer, "Press D and J to restart");
-                        showTextToLine(Buffer, SCREEN_ROWS/2 + 1);
+                        showTextToLine(Buffer, SCREEN_ROWS / 2 + 1);
                     }
-                    else{
+                    else
+                    {
                         strcpy(Buffer, "Player 1 wins!");
-                        showTextToLine(Buffer, SCREEN_ROWS/2 - 1);
+                        showTextToLine(Buffer, SCREEN_ROWS / 2 - 1);
                         strcpy(Buffer, "Press D and J to restart");
-                        showTextToLine(Buffer, SCREEN_ROWS/2 + 1);
+                        showTextToLine(Buffer, SCREEN_ROWS / 2 + 1);
                     }
-
                     displayMode(TEXT_MODE);
 
-                    if(checkDirectionTrigger(DirectionPad, DirectionRight) && checkDirectionTrigger(ToggleButtons, DirectionLeft)){
+                    // Play again
+                    if (checkDirectionTrigger(DirectionPad, DirectionRight) && checkDirectionTrigger(ToggleButtons, DirectionLeft))
+                    {
                         clearTextData();
                         srand(global);
 
                         // Randomize ball speed
-                        ballSpeedX = minSpeed + (rand() / (float)RAND_MAX) * (maxSpeed - minSpeed);
-                        ballSpeedY = minSpeed + (rand() / (float)RAND_MAX) * (maxSpeed - minSpeed);
+                        ballSpeedX = minSpeedX + (rand() / (float)RAND_MAX) * (maxSpeedX - minSpeedX);
+                        ballSpeedY = minSpeedY + (rand() / (float)RAND_MAX) * (maxSpeedY - minSpeedY);
 
                         // Reset ball position to the center
                         pingPongX = xPosMax / 2 - ballRadius / 2;
@@ -188,8 +207,8 @@ int main()
                 // Update ball location
                 pingPongX += ballSpeedX;
                 pingPongY += ballSpeedY;
-                controlObject(SMALL_SPRITE, FULLY_OPAQUE, pingPongX, pingPongY, 0, ballCanvasID,ballObjectID);
-                
+                controlObject(SMALL_SPRITE, FULLY_OPAQUE, pingPongX, pingPongY, 0, ballCanvasID, ballObjectID);
+
                 last_global = global;
             }
         }
@@ -238,7 +257,7 @@ void fillCanvas()
     }
 }
 
-bool collision(int playerTopLeftX, int playerTopLeftY, int pingPongX, int pingPongY, int rectangleWidth, int rectangleHeight, int ballRadius)
+bool checkCollision(int playerTopLeftX, int playerTopLeftY, int pingPongX, int pingPongY, int rectangleWidth, int rectangleHeight, int ballRadius)
 {
     int playerCenterX = playerTopLeftX + rectangleWidth / 2;
     int playerCenterY = playerTopLeftY + rectangleHeight / 2;
@@ -288,43 +307,53 @@ void handleCollision(float *speedX, float *speedY, float *pingPongX, float *ping
     // Change ball angle based on where it hits the bat
     int ballCenterY = *pingPongY + ballRadius;
     int hitPos = batY + rectangleHeight - ballCenterY;
-    float hitSegment = hitPos / (rectangleHeight / 9);
+    if (hitPos > rectangleHeight)
+    { // hit at the bottom
+        hitPos = rectangleHeight;
+    }
+    else if (hitPos < 0)
+    { // hit at the top
+        hitPos = 0;
+    }
+    float hitSegment = hitPos / ((float)rectangleHeight / 6.0);
+    float newSpeedY = 0;
+    if (0 <= hitSegment && hitSegment < 1)
+    {
+        newSpeedY = 0.75;
+    }
+    else if (1 <= hitSegment && hitSegment < 2)
+    {
+        newSpeedY = 0.5;
+    }
+    else if (2 <= hitSegment && hitSegment < 3)
+    {
+        newSpeedY = 0.25;
+    }
+    else if (hitSegment == 3.0)
+    {
+        newSpeedY = 0;
+    }
+    else if (3 < hitSegment && hitSegment < 4)
+    {
+        newSpeedY = 0.25;
+    }
+    else if (4 <= hitSegment && hitSegment < 5)
+    {
+        newSpeedY = 0.5;
+    }
+    else if (5 <= hitSegment && hitSegment <= 6)
+    {
+        newSpeedY = 0.75;
+    }
 
-    if (0 <= hitSegment < 1)
+    // Reflect the ball on the Y-axis
+    if (*speedY >= 0) // Ball moving downwards
     {
-        speedY = 4;
+        *speedY = newSpeedY; // Continue moving downwards, with adjusted speed
     }
-    else if (1 <= hitSegment < 2)
+    else if (*speedY < 0) // Ball moving upwards
     {
-        speedY = 3;
-    }
-    else if (2 <= hitSegment < 3)
-    {
-        speedY = 2;
-    }
-    else if (3 <= hitSegment < 4)
-    {
-        speedY = 1;
-    }
-    else if (4 <= hitSegment < 5)
-    {
-        speedY = 0;
-    }
-    else if (5 <= hitSegment < 6)
-    {
-        speedY = -1;
-    }
-    else if (6 <= hitSegment < 7)
-    {
-        speedY = -2;
-    }
-    else if (7 <= hitSegment < 8)
-    {
-        speedY = -3;
-    }
-    else if (8 <= hitSegment < 9)
-    {
-        speedY = -4;
+        *speedY = -newSpeedY; // Continue moving upwards, with adjusted speed
     }
 
     // Adjust the ball's position to avoid multiple collisions (teleporting)
@@ -338,28 +367,37 @@ void handleCollision(float *speedX, float *speedY, float *pingPongX, float *ping
     }
 }
 
-void clearTextData() {
-    for (int i = 0; i < SCREEN_ROWS * SCREEN_COLS; ++i) {
-        VIDEO_MEMORY[i] = ' ';  // ASCII value for space
+void clearTextData()
+{
+    for (int i = 0; i < SCREEN_ROWS * SCREEN_COLS; ++i)
+    {
+        VIDEO_MEMORY[i] = ' '; // ASCII value for space
     }
 }
 
-void showTextToLine(const char* text, int line) {
-    if (line < 0 || line >= SCREEN_ROWS) {
+void showTextToLine(const char *text, int line)
+{
+    if (line < 0 || line >= SCREEN_ROWS)
+    {
         return; // Invalid line number
     }
 
     int textLen = strlen(text);
     int middleCol = (SCREEN_COLS - textLen) / 2;
-    if (middleCol < 0) {
+    if (middleCol < 0)
+    {
         middleCol = 0; // Avoid negative starting position
     }
     int offset = line * SCREEN_COLS + middleCol;
 
-    for (int i = 0; i < textLen; ++i) {
-        if (middleCol + i < SCREEN_COLS) {
+    for (int i = 0; i < textLen; ++i)
+    {
+        if (middleCol + i < SCREEN_COLS)
+        {
             VIDEO_MEMORY[offset + i] = text[i];
-        } else {
+        }
+        else
+        {
             break; // Avoid writing past the end of the screen
         }
     }
