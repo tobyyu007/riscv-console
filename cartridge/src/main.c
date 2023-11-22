@@ -34,12 +34,9 @@ int ballRadius = 8;   // Radius of the ball
 float minSpeed = 0.3; // Minimum speed of the ball
 float maxSpeed = 0.5; // Maximum speed of the ball
 
-uint32_t setLargeGraphicObject(uint8_t palette, int16_t x, int16_t y, uint8_t z, uint8_t canvasIndex);
-uint32_t setSmallGraphicObject(uint8_t palette, int16_t x, int16_t y, uint8_t z, uint8_t canvasIndex);
 void fillCanvas();
-
 bool collision(int playerTopLeftX, int playerTopLeftY, int pingPongX, int pingPongY, int rectangleWidth, int rectangleHeight, int ballRadius);
-void handleCollision(float *speedX, float *speedY, float *pingPongX, int playerX);
+void handleCollision(float *speedX, float *speedY, float *pingPongX, float *pingPongY, int batX, int batY)
 void clearTextData();
 void showTextToLine(const char* text, int line);
 
@@ -146,13 +143,13 @@ int main()
                 // Player 1's bat check
                 if (collision(player1X, player1Y, pingPongX, pingPongY, rectangleWidth, rectangleHeight, ballRadius))
                 {
-                    handleCollision(&ballSpeedX, &ballSpeedY, &pingPongX, player1X);
+                    handleCollision(&ballSpeedX, &ballSpeedY, &pingPongX, &pingPongY, player1X, player1Y);
                 }
 
                 // Player 2's bat check
                 if (collision(player2X, player2Y, pingPongX, pingPongY, rectangleWidth, rectangleHeight, ballRadius))
                 {
-                    handleCollision(&ballSpeedX, &ballSpeedY, &pingPongX, player2X);
+                    handleCollision(&ballSpeedX, &ballSpeedY, &pingPongX, &pingPongY, player2X, player2Y);
                 }
 
                 // Reset position if needed
@@ -206,17 +203,6 @@ int main()
     return 0;
 }
 
-uint32_t setLargeGraphicObject(uint8_t palette, int16_t x, int16_t y, uint8_t z, uint8_t canvasIndex)
-{
-    // Look at the upper left for starting anchor
-    return (((uint32_t)canvasIndex) << 24) | (((uint32_t)z) << 21) | (((uint32_t)y + 64) << 12) | (((uint32_t)x + 64) << 2) | (palette & 0x3);
-}
-uint32_t setSmallGraphicObject(uint8_t palette, int16_t x, int16_t y, uint8_t z, uint8_t canvasIndex)
-{
-    // Look at the upper left for starting anchor
-    return (((uint32_t)canvasIndex) << 24) | (((uint32_t)z) << 21) | (((uint32_t)y + 16) << 12) | (((uint32_t)x + 16) << 2) | (palette & 0x3);
-}
-
 void fillCanvas()
 {
     // Fill out bat canvas (large canvas)
@@ -242,11 +228,11 @@ void fillCanvas()
 
             if (distance <= ballRadius * ballRadius)
             {
-                ballCanvas[y * SMALL_SPRITE_SIZE + x] = ORANGE; // Set pixel to 1 if it's inside the circle
+                ballCanvas[y * SMALL_SPRITE_SIZE + x] = ORANGE;
             }
             else
             {
-                ballCanvas[y * SMALL_SPRITE_SIZE + x] = NO_COLOR; // Set pixel to 0 if it's outside the circle
+                ballCanvas[y * SMALL_SPRITE_SIZE + x] = NO_COLOR;
             }
         }
     }
@@ -286,27 +272,67 @@ bool collision(int playerTopLeftX, int playerTopLeftY, int pingPongX, int pingPo
     return (cornerDistance_sq <= (ballRadius * ballRadius));
 }
 
-void handleCollision(float *speedX, float *speedY, float *pingPongX, int playerX)
+void handleCollision(float *speedX, float *speedY, float *pingPongX, float *pingPongY, int batX, int batY)
 {
-    *speedX = -(*speedX);
-    *speedY = -(*speedY);
-
-    // Adjust the horizontal speed
-    if (*speedX < 0)
+    if (*speedX < 0) // If the ball is moving to the left
     {
-        *speedX -= 0.05;
+        *speedX -= 0.1;
     }
-    else
+    else // If the ball is moving to the right
     {
-        *speedX += 0.05;
+        *speedX += 0.1;
+    }
+
+    *speedX = -(*speedX); // Change ball X direction
+
+    // Change ball angle based on where it hits the bat
+    int ballCenterY = *pingPongY + ballRadius;
+    int hitPos = batY + rectangleHeight - ballCenterY;
+    float hitSegment = hitPos / (rectangleHeight / 9);
+
+    if (0 <= hitSegment < 1)
+    {
+        speedY = 4;
+    }
+    else if (1 <= hitSegment < 2)
+    {
+        speedY = 3;
+    }
+    else if (2 <= hitSegment < 3)
+    {
+        speedY = 2;
+    }
+    else if (3 <= hitSegment < 4)
+    {
+        speedY = 1;
+    }
+    else if (4 <= hitSegment < 5)
+    {
+        speedY = 0;
+    }
+    else if (5 <= hitSegment < 6)
+    {
+        speedY = -1;
+    }
+    else if (6 <= hitSegment < 7)
+    {
+        speedY = -2;
+    }
+    else if (7 <= hitSegment < 8)
+    {
+        speedY = -3;
+    }
+    else if (8 <= hitSegment < 9)
+    {
+        speedY = -4;
     }
 
     // Adjust the ball's position to avoid multiple collisions (teleporting)
-    if (*speedX > 0 && *pingPongX < playerX + rectangleWidth)
+    if (*speedX > 0 && *pingPongX < batX + rectangleWidth)
     {
         *pingPongX = batXOffset + rectangleWidth;
     }
-    if (*speedX < 0 && *pingPongX + ballRadius * 2 > playerX)
+    if (*speedX < 0 && *pingPongX + ballRadius * 2 > batX)
     {
         *pingPongX = xPosMax - batXOffset - rectangleWidth - ballRadius * 2;
     }
