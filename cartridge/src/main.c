@@ -83,19 +83,6 @@ int main()
     {
         if (global != last_global)
         {
-            if (checkDirectionTrigger(DirectionPad, DirectionLeft))
-            {
-                displayMode(GRAPHICS_MODE);
-            }
-
-            if (checkDirectionTrigger(ToggleButtons, DirectionRight))
-            {
-                // char *Buffer = AllocateMemory(32);
-                displayMode(TEXT_MODE);
-                sprintf(Buffer, "hitSegment speed is: %f", ballSpeedY);
-                showTextToLine(Buffer, SCREEN_ROWS / 2);
-            }
-
             // Check if the game is started
             if (start == false)
             {
@@ -103,7 +90,6 @@ int main()
                 showTextToLine(Buffer, SCREEN_ROWS / 2);
                 displayMode(TEXT_MODE); // 0: text mode/ 1: graphic mode
 
-                // enableCMDInterrupt();
                 if (checkDirectionTrigger(DirectionPad, DirectionRight) && checkDirectionTrigger(ToggleButtons, DirectionLeft))
                 {
                     start = true;
