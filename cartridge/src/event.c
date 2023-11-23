@@ -1,10 +1,8 @@
-#include "event.h"
-#include <stdbool.h>
+# include "event.h"
 
 bool controllerEventTriggered() {  // Check if event is triggered
     return checkControllerStatus();
 }
-
 
 bool checkDirectionTrigger(ControllerType controllerType, EventType eventType) {  // Check if the given controller's button is triggered
     Controller controller = {controllerType};
