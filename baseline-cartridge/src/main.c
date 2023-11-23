@@ -9,10 +9,7 @@
 #include "memory.h"
 
 
-uint32_t GetTicks(void);
-
 void fillOutData();
-
 volatile uint32_t global;
 
 uint8_t squareCanvas[MEDIUM_SPRITE_SIZE * MEDIUM_SPRITE_SIZE]; //Create data buffer
@@ -22,7 +19,7 @@ volatile char *VIDEO_MEMORY = (volatile char *)(0x50000000 + 0xF4800);
 
 
 int main() {
-    global = GetTicks();
+    global = getCurrentTime();
     int countdown = 1;
     int a = 4;
     int b = 12;
@@ -31,9 +28,6 @@ int main() {
 
     fillOutData(); //Fill in the data buffer
     uint32_t square =  createCanvas(MEDIUM_SPRITE, squareCanvas, 1024);
-    uint32_t circle =  createCanvas(MEDIUM_SPRITE, circleCanvas, 1024);
-
-
     uint32_t squareObjectID =  createObject(MEDIUM_SPRITE,FULLY_OPAQUE, 0, 0, 0, square);
     
     char *Buffer = AllocateMemory(32);
@@ -41,7 +35,6 @@ int main() {
     strcpy((char *)VIDEO_MEMORY, Buffer);
     displayMode(TEXT_MODE);
     bool start = false;
-    int currentIndex = 0;
 
     while (1) {
         int c = a + b + global;
@@ -73,11 +66,6 @@ int main() {
                     }
                 }
                 controlObject(MEDIUM_SPRITE,FULLY_OPAQUE, (x_pos & 0x3F)<<3, (x_pos>>6)<<3, 0, square, squareObjectID);
-                // if(controller_status & 0x10){
-                //     // thread_addr = InitThread();
-                //     controlObject(MEDIUM_SPRITE,SEMI_OPAQUE_60, (x_pos & 0x3F)<<3, (x_pos>>6)<<3, 0, circle, medium_control_id);
-
-                // }
             }
             last_global = global;
         }
