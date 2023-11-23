@@ -7,6 +7,17 @@
 #include "ControlSprite.h"
 #include <stdbool.h>
 
+#define MTIME_LOW       (*((volatile uint32_t *)0x40000008))
+#define MTIME_HIGH      (*((volatile uint32_t *)0x4000000C))
+#define MTIMECMP_LOW    (*((volatile uint32_t *)0x40000010))
+#define MTIMECMP_HIGH   (*((volatile uint32_t *)0x40000014))
+#define CONTROLLER      (*((volatile uint32_t *)0x40000018))
+#define INTERRUPT_ENABLE_REGISTER (*((volatile uint32_t *)0x40000000))
+#define INTERRUPT_PENDING_REGISTER (*((volatile uint32_t *)0x40000004))
+#define MODE_REGISTER     (*((volatile uint32_t *)0x500F6780))
+#define VIE_BIT 1
+#define CMIE_BIT 2
+
 extern uint8_t _erodata[];
 extern uint8_t _data[];
 extern uint8_t _edata[];
@@ -38,16 +49,7 @@ __attribute__((always_inline)) inline void csr_disable_interrupts(void){
     asm volatile ("csrci mstatus, 0x8");
 }
 
-#define MTIME_LOW       (*((volatile uint32_t *)0x40000008))
-#define MTIME_HIGH      (*((volatile uint32_t *)0x4000000C))
-#define MTIMECMP_LOW    (*((volatile uint32_t *)0x40000010))
-#define MTIMECMP_HIGH   (*((volatile uint32_t *)0x40000014))
-#define CONTROLLER      (*((volatile uint32_t *)0x40000018))
-#define INTERRUPT_ENABLE_REGISTER (*((volatile uint32_t *)0x40000000))
-#define INTERRUPT_PENDING_REGISTER (*((volatile uint32_t *)0x40000004))
-#define MODE_REGISTER     (*((volatile uint32_t *)0x500F6780))
-#define VIE_BIT 1
-#define CMIE_BIT 2
+
 volatile uint32_t video_interrupt_count = 0;
 volatile uint32_t CMD_interrupt_count = 0;
 
@@ -69,13 +71,10 @@ void init(void){
     csr_enable_interrupts();    // Global interrupt enable
     MTIMECMP_LOW = 1;
     MTIMECMP_HIGH = 0;
-
-    // INTERRUPT_ENABLE_REGISTER |= (1 << VIE_BIT) | (1 << CMIE_BIT);
-    // INTERRUPT_ENABLE_REGISTER |= (1 << CMIE_BIT);
 }
 
 extern volatile int global;
-volatile uint32_t CMD_interrupt_count;
+// volatile uint32_t CMD_interrupt_count;
 volatile uint32_t controller_status;
 volatile bool CMDInterrupted = false;
 
@@ -86,24 +85,21 @@ void c_interrupt_handler(void){
     MTIMECMP_LOW = NewCompare;
     global++;
     controller_status = CONTROLLER;
-    // if(INTERRUPT_PENDING_REGISTER & (1 << VIE_BIT)){
-    //     video_interrupt_count++;
-    //     INTERRUPT_PENDING_REGISTER |= (1 << VIE_BIT);
-    // }
+
     if(INTERRUPT_PENDING_REGISTER & (1 << CMIE_BIT)){
         CMDInterrupted = true;
-        CMD_interrupt_count++;
+        // CMD_interrupt_count++;
     }
-
 }
 
 typedef uint32_t *TThreadContext;
-
 typedef void (*TThreadEntry)(void *);
-
 
 TThreadContext InitThread(uint32_t *stacktop, TThreadEntry entry,void *param);
 void SwitchThread(TThreadContext *oldcontext, TThreadContext newcontext);
+
+int timerStart = 0;
+int timerEnd = 0;
 
 TThreadContext MainThread;
 TThreadContext OtherThread;
@@ -181,6 +177,26 @@ uint32_t c_system_call(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg
     else if(16 == call){  // event.h - DisableCMDInterrupt()
         INTERRUPT_ENABLE_REGISTER &= (0 << CMIE_BIT);
         return 1;
+    }
+    else if(17 == call){  // timer.h - StartTimer()
+        timerStart = global;
+        timerEnd = 0;
+        return 1;
+    }
+    else if(18 == call){  // timer.h - StopTimer()
+        timerEnd = global;
+        return 1;
+    }
+    else if(19 == call){  // timer.h - TimeElpased()
+        return timerEnd-timerStart;
+    }
+    else if(20 == call){  // timer.h - ResetTimer()
+        timerStart = 0;
+        timerEnd = 0;
+        return 1;
+    }
+    else if(21 == call){  // timer.h - GetCurrentTime()
+        return global;
     }
     else if(30 == call){ // CreateControlSprite
         int result = createControlSprite(arg0, arg1);

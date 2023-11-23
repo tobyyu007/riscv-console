@@ -37,8 +37,8 @@ int main() {
             FunctionPtr Fun = (FunctionPtr)((*CartridgeStatus) & 0xFFFFFFFC);
             Fun();
         }
-        sprintf(Buffer, "CMD Interrupts: %u", CMD_interrupt_count);
-        strcpy((char *)VIDEO_MEMORY + 16, Buffer);
+        // sprintf(Buffer, "CMD Interrupts: %u", CMD_interrupt_count);
+        // strcpy((char *)VIDEO_MEMORY + 16, Buffer);
     }
     return 0;
 }
