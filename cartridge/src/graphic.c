@@ -55,6 +55,16 @@ void displayMode(DisplayMode mode){
     }
 }
 
+// getWindowSize() is a function that returns the size of the window in pixels
+
+struct windowSize getWindowSize(int windowId) {
+    struct windowSize size;
+    size.width = 512;
+    size.height = 288;
+    return size;
+}
+
+
 void clearTextData() {
     ClearTextData();
 }
