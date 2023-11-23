@@ -7,6 +7,7 @@
 #include "event.h"
 #include "graphic.h"
 #include "memory.h"
+#include "timer.h"
 
 volatile int global = 42;
 
@@ -79,6 +80,9 @@ int main()
     bool start = false;
     char *Buffer = AllocateMemory(32);
 
+    int timeStart = 0;
+    int timeEnd = 0;
+
     while (1)
     {
         if (global != last_global)
@@ -95,10 +99,11 @@ int main()
                     start = true;
                     displayMode(GRAPHICS_MODE);
                     clearTextData();
+                    StartTimer();
                 }
             }
 
-            else
+            else  // Game is started
             {
                 if (controllerEventTriggered())
                 {
@@ -169,16 +174,22 @@ int main()
                         strcpy(Buffer, "Player 1 wins!");
                         showTextToLine(Buffer, SCREEN_ROWS / 2 - 1);
                         strcpy(Buffer, "Press D and J to restart");
-                        showTextToLine(Buffer, SCREEN_ROWS / 2 + 1);
+                        showTextToLine(Buffer, SCREEN_ROWS / 2 + 2);
                     }
+                    if(timeEnd == 0){
+                        timeEnd = global;
+                    }
+                    sprintf(Buffer, "Playing Time Passed: %d", timeEnd - timeStart);
+                    showTextToLine(Buffer, SCREEN_ROWS / 2);
                     displayMode(TEXT_MODE);
 
                     // Play again
                     if (checkDirectionTrigger(DirectionPad, DirectionRight) && checkDirectionTrigger(ToggleButtons, DirectionLeft))
                     {
                         clearTextData();
-                        srand(global);
+                        resetTimer();
 
+                        srand(global);
                         // Randomize ball speed
                         ballSpeedX = minSpeedX + (rand() / (float)RAND_MAX) * (maxSpeedX - minSpeedX);
                         ballSpeedY = minSpeedY + (rand() / (float)RAND_MAX) * (maxSpeedY - minSpeedY);
