@@ -18,6 +18,11 @@ volatile uint32_t *SMALL_PALETTE_0 = (volatile uint32_t *)(0x500F3000);
 volatile uint32_t *SMALL_PALETTE_1 = (volatile uint32_t *)(0x500F3400);
 volatile uint32_t *SMALL_PALETTE_2 = (volatile uint32_t *)(0x500F3800);
 volatile uint32_t *SMALL_PALETTE_3 = (volatile uint32_t *)(0x500F3C00);
+// Define and allocate memory for VIDEO_MEMORY
+volatile char *VIDEO_MEMORY = (volatile char *)(0x500F4800);
+// Screen dimensions in characters
+#define SCREEN_COLS 64
+#define SCREEN_ROWS 36
 
 uint8_t largeSpriteBitmap[NUM_LARGE_SPRITES / 8];
 uint8_t mediumSpriteBitmap[NUM_MEDIUM_SPRITES / 8];
@@ -149,5 +154,32 @@ void initializePalette() {
         SMALL_PALETTE_1[i] = (color & 0x00FFFFFF) | (0x99 << 24);  // 60% opacity
         SMALL_PALETTE_2[i] = (color & 0x00FFFFFF) | (0x4C << 24);  // 30% opacity
         SMALL_PALETTE_3[i] = (color & 0x00FFFFFF) | (0x00 << 24);  // 0% opacity
+    }
+}
+
+void clearTextData() {
+    for (int i = 0; i < SCREEN_ROWS * SCREEN_COLS; ++i) {
+        VIDEO_MEMORY[i] = ' ';  // ASCII value for space
+    }
+}
+
+void showTextToLine(const char* text, int line) {
+    if (line < 0 || line >= SCREEN_ROWS) {
+        return; // Invalid line number
+    }
+
+    int textLen = strlen(text);
+    int middleCol = (SCREEN_COLS - textLen) / 2;
+    if (middleCol < 0) {
+        middleCol = 0; // Avoid negative starting position
+    }
+    int offset = line * SCREEN_COLS + middleCol;
+
+    for (int i = 0; i < textLen; ++i) {
+        if (middleCol + i < SCREEN_COLS) {
+            VIDEO_MEMORY[offset + i] = text[i];
+        } else {
+            break; // Avoid writing past the end of the screen
+        }
     }
 }
