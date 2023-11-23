@@ -1,9 +1,6 @@
 #ifndef EVENT_H
 #define EVENT_H
 #include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
 #include <stdbool.h>
 
 typedef enum
