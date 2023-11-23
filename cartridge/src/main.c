@@ -6,6 +6,7 @@
 #include "event.h"
 #include "graphic.h"
 #include "memory.h"
+#include "thread.h"
 
 volatile int global = 42;
 
