@@ -15,8 +15,8 @@ uint8_t ballCanvas[SMALL_SPRITE_SIZE * SMALL_SPRITE_SIZE];
 
 
 // Screen Resolution
-int xPosMax = 512;
-int yPosMax = 288;
+int xPosMax = 0;
+int yPosMax = 0;
 
 
 
@@ -68,6 +68,10 @@ int main()
     global = getCurrentTime();
     displayMode(GRAPHICS_MODE);
 
+    struct windowSize screenResolution = getWindowSize();
+
+    xPosMax = screenResolution.width;
+    yPosMax = screenResolution.height;
     // Initialize game
     initGame();
 

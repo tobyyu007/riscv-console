@@ -40,7 +40,7 @@ int freeObject(SpriteSize size, int objectId);
 int createCanvas(SpriteSize size, uint8_t* buffer, uint32_t bufferSize);
 int freeCanvas(SpriteSize size, int canvasId);
 void displayMode(DisplayMode mode);
-struct windowSize getWindowSize(int windowId);
+struct windowSize getWindowSize();
 void clearTextData();
 void showTextToLine(const char* text, int line);
 
