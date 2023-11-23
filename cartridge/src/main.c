@@ -18,6 +18,8 @@ volatile uint32_t global;
 uint8_t squareCanvas[MEDIUM_SPRITE_SIZE * MEDIUM_SPRITE_SIZE]; //Create data buffer
 uint8_t circleCanvas[MEDIUM_SPRITE_SIZE * MEDIUM_SPRITE_SIZE];
 
+volatile char *VIDEO_MEMORY = (volatile char *)(0x50000000 + 0xF4800);
+
 
 int main() {
     global = GetTicks();
@@ -34,12 +36,23 @@ int main() {
 
     uint32_t squareObjectID =  createObject(MEDIUM_SPRITE,FULLY_OPAQUE, 0, 0, 0, square);
     
-    displayMode(GRAPHICS_MODE);
+    // enableCMDInterrupt();
+    char *Buffer = AllocateMemory(32);
+    strcpy(Buffer, "Press CMD to start");
+    strcpy((char *)VIDEO_MEMORY, Buffer);
+    displayMode(TEXT_MODE);
+    bool start = false;
     int currentIndex = 0;
 
     while (1) {
         int c = a + b + global;
         if(global != last_global){
+            if(!start && CMDPressed()){
+                disableCMDInterrupt();
+                start = true;
+                displayMode(GRAPHICS_MODE);
+            }
+            
             if(controllerEventTriggered()){
                 if(checkDirectionTrigger(DirectionPad, DirectionLeft)){
                     if(x_pos & 0x3F){
