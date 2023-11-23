@@ -195,6 +195,9 @@ uint32_t c_system_call(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg
         timerEnd = 0;
         return 1;
     }
+    else if(21 == call){  // timer.h - GetCurrentTime()
+        return global;
+    }
     else if(30 == call){ // CreateControlSprite
         int result = createControlSprite(arg0, arg1);
         return result;
@@ -216,6 +219,14 @@ uint32_t c_system_call(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg
     else if(51 == call){
         int result = freeSprite(arg0, arg1);
         return result;
+    }
+    else if(55 == call){
+        clearTextData(); 
+        return 1;
+    }
+    else if(56 == call){
+        showTextToLine((const char *)(uintptr_t)arg0, arg1);
+        return 1;
     }
     else if(60 == call){
         MODE_REGISTER = arg0; // 0: text mode/ 1: graphic mode
