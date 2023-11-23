@@ -31,5 +31,7 @@ extern uint8_t smallSpriteBitmap[NUM_SMALL_SPRITES / 8];
 void initSpriteSystem(void);
 int createSprite(SpriteSize size, const uint8_t *buffer, size_t bufferSize);
 int freeSprite(SpriteSize size, int spriteIndex);
+void clearTextData();
+void showTextToLine(const char* text, int line);
 
 #endif // MANAGE_SPRITE_H
