@@ -27,10 +27,10 @@ int batXOffset = 20;      // Offset for the bat in the X axis
 
 // Ball size
 int ballRadius = 8;      // Radius of the ball
-float minSpeedX = 0.5;   // Minimum X axis speed of the ball
-float maxSpeedX = 0.7;   // Maximum X axis speed of the ball
-float minSpeedY = -0.75; // Minimum Y axis speed of the ball
-float maxSpeedY = 0.75;  // Maximum Y axis speed of the ball
+float minSpeedX = 0.7;   // Minimum X axis speed of the ball
+float maxSpeedX = 1.0;   // Maximum X axis speed of the ball
+float minSpeedY = -1.0; // Minimum Y axis speed of the ball
+float maxSpeedY = 1.0;  // Maximum Y axis speed of the ball
 
 // Player 1 and 2 position
 int player1X = 0;
@@ -56,7 +56,8 @@ int global = 0;
 void fillCanvas();
 
 bool collision(int playerTopLeftX, int playerTopLeftY, int pingPongX, int pingPongY, int rectangleWidth, int rectangleHeight, int ballRadius);
-void handleCollision(float *speedX, float *speedY, float *pingPongX, int playerX);
+void handleCollision(float *speedX, float *speedY, float *pingPongX, float *pingPongY, int batX, int batY);
+bool checkCollision(int playerTopLeftX, int playerTopLeftY, int pingPongX, int pingPongY, int rectangleWidth, int rectangleHeight, int ballRadius);
 void clearTextData();
 void showTextToLine(const char* text, int line);
 void initGame();
@@ -180,7 +181,7 @@ int main()
                     if(timeEnd == 0){
                         timeEnd = global;
                     }
-                    sprintf(Buffer, "Playing Time: %d", timeEnd - timeStart);
+                    sprintf(Buffer, "Playing Time: %d (sec)", (timeEnd - timeStart)/181);
                     showTextToLine(Buffer, SCREEN_ROWS / 2);
                     displayMode(TEXT_MODE);
 
@@ -308,15 +309,15 @@ void handleCollision(float *speedX, float *speedY, float *pingPongX, float *ping
     float newSpeedY = 0;
     if (0 <= hitSegment && hitSegment < 1)
     {
-        newSpeedY = 0.75;
+        newSpeedY = 1.0;
     }
     else if (1 <= hitSegment && hitSegment < 2)
     {
-        newSpeedY = 0.5;
+        newSpeedY = 0.75;
     }
     else if (2 <= hitSegment && hitSegment < 3)
     {
-        newSpeedY = 0.25;
+        newSpeedY = 0.5;
     }
     else if (hitSegment == 3.0)
     {
@@ -328,11 +329,11 @@ void handleCollision(float *speedX, float *speedY, float *pingPongX, float *ping
     }
     else if (4 <= hitSegment && hitSegment < 5)
     {
-        newSpeedY = 0.5;
+        newSpeedY = 0.75;
     }
     else if (5 <= hitSegment && hitSegment <= 6)
     {
-        newSpeedY = 0.75;
+        newSpeedY = 1.0;
     }
 
     // Reflect the ball on the Y-axis
@@ -354,4 +355,30 @@ void handleCollision(float *speedX, float *speedY, float *pingPongX, float *ping
     {
         *pingPongX = xPosMax - batXOffset - rectangleWidth - ballRadius * 2;
     }
+}
+
+
+void initGame(){
+    clearTextData();
+
+    // Player 1 and 2 starting position
+    player1X = 0 + batXOffset;
+    player1Y = yPosMax / 2 - rectangleHeight / 2;
+    player2X = xPosMax - rectangleWidth - batXOffset;
+    player2Y = yPosMax / 2 - rectangleHeight / 2;
+
+    // Ball starting position
+    pingPongX = xPosMax / 2 - ballRadius / 2;
+    pingPongY = yPosMax / 2 - ballRadius / 2;
+
+    // Set random speed for the ball
+    global = getCurrentTime();
+    srand(global);
+    ballSpeedX = minSpeedX + (rand() / (float)RAND_MAX) * (maxSpeedX - minSpeedX);
+    ballSpeedY = minSpeedY + (rand() / (float)RAND_MAX) * (maxSpeedY - minSpeedY);
+
+    // Reset game timer
+    timeStart = 0;
+    timeEnd = 0;
+    resetTimer();
 }
