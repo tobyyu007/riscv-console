@@ -7,22 +7,19 @@
 #include "event.h"
 #include "graphic.h"
 #include "memory.h"
+#include "timer.h"
 
 
-uint32_t GetTicks(void);
 
 void fillOutData();
-
 volatile uint32_t global;
 
 uint8_t squareCanvas[MEDIUM_SPRITE_SIZE * MEDIUM_SPRITE_SIZE]; //Create data buffer
 uint8_t circleCanvas[MEDIUM_SPRITE_SIZE * MEDIUM_SPRITE_SIZE];
 
-volatile char *VIDEO_MEMORY = (volatile char *)(0x50000000 + 0xF4800);
-
 
 int main() {
-    global = GetTicks();
+    global = getCurrentTime();
     int countdown = 1;
     int a = 4;
     int b = 12;
@@ -36,10 +33,11 @@ int main() {
 
     uint32_t squareObjectID =  createObject(MEDIUM_SPRITE,FULLY_OPAQUE, 0, 0, 0, square);
     
-    // enableCMDInterrupt();
+    enableCMDInterrupt();
+    clearTextData();
     char *Buffer = AllocateMemory(32);
     strcpy(Buffer, "Press CMD to start");
-    strcpy((char *)VIDEO_MEMORY, Buffer);
+    showTextToLine(Buffer, SCREEN_ROWS/2);
     displayMode(TEXT_MODE);
     bool start = false;
     int currentIndex = 0;
