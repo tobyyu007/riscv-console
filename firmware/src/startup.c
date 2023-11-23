@@ -86,8 +86,9 @@ void c_interrupt_handler(void){
     global++;
     controller_status = CONTROLLER;
 
-    if((INTERRUPT_PENDING_REGISTER & (1 << CMIE_BIT)) == 0){
+    if(INTERRUPT_PENDING_REGISTER & (1 << CMIE_BIT)){
         CMDInterrupted = true;
+        // CMD_interrupt_count++;
     }
 }
 
@@ -166,6 +167,7 @@ uint32_t c_system_call(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg
     else if(15 == call){  // event.h - CMDInterrupted()
         if(CMDInterrupted){
             CMDInterrupted = false;
+            INTERRUPT_PENDING_REGISTER |= (1 << CMIE_BIT);
             return 1;
         }
         else{
