@@ -1,6 +1,7 @@
 #include <graphic.h>
 #include <sprite_sizes.h>
-
+#include <stdio.h>
+#include <string.h>
 int createObject(SpriteSize size,int palette, int x, int y, int z, int canvasId){
     uint32_t Object = setObject(size,palette, x, y, z, canvasId);
     int objectId = CreateControlSprite(size, Object);
@@ -52,4 +53,12 @@ void displayMode(DisplayMode mode){
     else if (mode == TEXT_MODE){
         ChangeMode(0);
     }
+}
+
+void clearTextData() {
+    ClearTextData();
+}
+
+void showTextToLine(const char* text, int line) {
+    ShowTextToLine(text, line);
 }

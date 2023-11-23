@@ -13,16 +13,12 @@ volatile int global = 42;
 uint8_t batCanvas[LARGE_SPRITE_SIZE*LARGE_SPRITE_SIZE];
 uint8_t ballCanvas[SMALL_SPRITE_SIZE*SMALL_SPRITE_SIZE];
 
-// Text Data
-volatile char *VIDEO_MEMORY = (volatile char *)(0x500F4800);
 
 // Screen Resolution
 int xPosMax = 512;
 int yPosMax = 288;
 
-// Screen dimensions in characters
-#define SCREEN_COLS 64
-#define SCREEN_ROWS 36
+
 
 // Rectangle size
 int rectangleHeight = 64; // Height of the rectangle
@@ -40,8 +36,7 @@ void fillCanvas();
 
 bool collision(int playerTopLeftX, int playerTopLeftY, int pingPongX, int pingPongY, int rectangleWidth, int rectangleHeight, int ballRadius);
 void handleCollision(float *speedX, float *speedY, float *pingPongX, int playerX);
-void clearTextData();
-void showTextToLine(const char* text, int line);
+
 
 int main()
 {
@@ -309,32 +304,5 @@ void handleCollision(float *speedX, float *speedY, float *pingPongX, int playerX
     if (*speedX < 0 && *pingPongX + ballRadius * 2 > playerX)
     {
         *pingPongX = xPosMax - batXOffset - rectangleWidth - ballRadius * 2;
-    }
-}
-
-void clearTextData() {
-    for (int i = 0; i < SCREEN_ROWS * SCREEN_COLS; ++i) {
-        VIDEO_MEMORY[i] = ' ';  // ASCII value for space
-    }
-}
-
-void showTextToLine(const char* text, int line) {
-    if (line < 0 || line >= SCREEN_ROWS) {
-        return; // Invalid line number
-    }
-
-    int textLen = strlen(text);
-    int middleCol = (SCREEN_COLS - textLen) / 2;
-    if (middleCol < 0) {
-        middleCol = 0; // Avoid negative starting position
-    }
-    int offset = line * SCREEN_COLS + middleCol;
-
-    for (int i = 0; i < textLen; ++i) {
-        if (middleCol + i < SCREEN_COLS) {
-            VIDEO_MEMORY[offset + i] = text[i];
-        } else {
-            break; // Avoid writing past the end of the screen
-        }
     }
 }
