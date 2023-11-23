@@ -1,5 +1,5 @@
 .section .text, "ax"
-.global _interrupt_handler, GetTicks, GetController, InitThread, SwitchThread, ChangeMode, CreateControlSprite, FreeControlSprite, ControlSprite, CreateSprite, FreeSprite, TestSendPointer, checkControllerStatus, DirectionPadLeft, DirectionPadUp, DirectionPadDown, DirectionPadRight, ToggleButtonsUp, ToggleButtonsRight, ToggleButtonsLeft, ToggleButtonsDown, EnableCMDInterrupt, CMDInterrupted, DisableCMDInterrupt, StartTimer, EndTimer, TimeElpased, ResetTimer
+.global _interrupt_handler, GetTicks, GetController, InitThread, SwitchThread, ChangeMode, CreateControlSprite, FreeControlSprite, ControlSprite, CreateSprite, FreeSprite, TestSendPointer, checkControllerStatus, DirectionPadLeft, DirectionPadUp, DirectionPadDown, DirectionPadRight, ToggleButtonsUp, ToggleButtonsRight, ToggleButtonsLeft, ToggleButtonsDown, EnableCMDInterrupt, CMDInterrupted, DisableCMDInterrupt, StartTimer, EndTimer, TimeElpased, ResetTimer, GetCurrentTime
 
 _interrupt_handler:
     addi	sp,sp,-40
@@ -85,6 +85,9 @@ TimeElpased:
     li a5, 19
     ecall
 ResetTimer:
+    li a5, 20
+    ecall
+GetCurrentTime:
     li a5, 20
     ecall
 CreateControlSprite:

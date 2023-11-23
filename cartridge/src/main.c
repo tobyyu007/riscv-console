@@ -9,8 +9,6 @@
 #include "memory.h"
 #include "timer.h"
 
-volatile int global = 42;
-
 // Canvas
 uint8_t batCanvas[LARGE_SPRITE_SIZE * LARGE_SPRITE_SIZE];
 uint8_t ballCanvas[SMALL_SPRITE_SIZE * SMALL_SPRITE_SIZE];
@@ -38,28 +36,42 @@ float maxSpeedX = 0.7;   // Maximum X axis speed of the ball
 float minSpeedY = -0.75; // Minimum Y axis speed of the ball
 float maxSpeedY = 0.75;  // Maximum Y axis speed of the ball
 
+// Player 1 and 2 position
+int player1X = 0;
+int player1Y = 0;
+int player2X = 0;
+int player2Y = 0;
+
+// Ball position
+float pingPongX = 0;
+float pingPongY = 0;
+
+// Ball moving speed
+float ballSpeedX = 0;
+float ballSpeedY = 0;
+
+// Game timer
+int timeStart = 0;
+int timeEnd = 0;
+
+int last_global = 0;
+int global = 0;
+
 void fillCanvas();
 bool checkCollision(int playerTopLeftX, int playerTopLeftY, int pingPongX, int pingPongY, int rectangleWidth, int rectangleHeight, int ballRadius);
 void handleCollision(float *speedX, float *speedY, float *pingPongX, float *pingPongY, int batX, int batY);
 void clearTextData();
 void showTextToLine(const char *text, int line);
+void initGame();
 
 int main()
 {
     int countdown = 1;
-    int last_global = 42;
+    global = getCurrentTime();
     displayMode(GRAPHICS_MODE);
-    clearTextData();
 
-    // Player 1 and 2 starting position
-    int player1X = 0 + batXOffset;
-    int player1Y = yPosMax / 2 - rectangleHeight / 2;
-    int player2X = xPosMax - rectangleWidth - batXOffset;
-    int player2Y = yPosMax / 2 - rectangleHeight / 2;
-
-    // Ball starting position
-    float pingPongX = xPosMax / 2 - ballRadius / 2;
-    float pingPongY = yPosMax / 2 - ballRadius / 2;
+    // Initialize game
+    initGame();
 
     // fill in Canvas bufffer
     fillCanvas();
@@ -72,16 +84,8 @@ int main()
     uint32_t player2BatObjectID = createObject(LARGE_SPRITE, FULLY_OPAQUE, player2X, player2Y, 0, batCanvasID);
     uint32_t ballObjectID = createObject(SMALL_SPRITE, FULLY_OPAQUE, pingPongX, pingPongY, 0, ballCanvasID);
 
-    // Set random speed for the ball
-    srand(global);
-    float ballSpeedX = minSpeedX + (rand() / (float)RAND_MAX) * (maxSpeedX - minSpeedX);
-    float ballSpeedY = minSpeedY + (rand() / (float)RAND_MAX) * (maxSpeedY - minSpeedY);
-
     bool start = false;
     char *Buffer = AllocateMemory(32);
-
-    int timeStart = 0;
-    int timeEnd = 0;
 
     while (1)
     {
@@ -167,7 +171,7 @@ int main()
                         strcpy(Buffer, "Player 2 wins!");
                         showTextToLine(Buffer, SCREEN_ROWS / 2 - 1);
                         strcpy(Buffer, "Press D and J to restart");
-                        showTextToLine(Buffer, SCREEN_ROWS / 2 + 1);
+                        showTextToLine(Buffer, SCREEN_ROWS / 2 + 2);
                     }
                     else
                     {
@@ -179,24 +183,15 @@ int main()
                     if(timeEnd == 0){
                         timeEnd = global;
                     }
-                    sprintf(Buffer, "Playing Time Passed: %d", timeEnd - timeStart);
+                    sprintf(Buffer, "Playing Time: %d", timeEnd - timeStart);
                     showTextToLine(Buffer, SCREEN_ROWS / 2);
                     displayMode(TEXT_MODE);
 
                     // Play again
                     if (checkDirectionTrigger(DirectionPad, DirectionRight) && checkDirectionTrigger(ToggleButtons, DirectionLeft))
                     {
-                        clearTextData();
-                        resetTimer();
-
-                        srand(global);
-                        // Randomize ball speed
-                        ballSpeedX = minSpeedX + (rand() / (float)RAND_MAX) * (maxSpeedX - minSpeedX);
-                        ballSpeedY = minSpeedY + (rand() / (float)RAND_MAX) * (maxSpeedY - minSpeedY);
-
-                        // Reset ball position to the center
-                        pingPongX = xPosMax / 2 - ballRadius / 2;
-                        pingPongY = yPosMax / 2 - ballRadius / 2;
+                        // Initialize game
+                        initGame();
                         displayMode(GRAPHICS_MODE);
                     }
                 }
@@ -398,4 +393,29 @@ void showTextToLine(const char *text, int line)
             break; // Avoid writing past the end of the screen
         }
     }
+}
+
+void initGame(){
+    clearTextData();
+
+    // Player 1 and 2 starting position
+    player1X = 0 + batXOffset;
+    player1Y = yPosMax / 2 - rectangleHeight / 2;
+    player2X = xPosMax - rectangleWidth - batXOffset;
+    player2Y = yPosMax / 2 - rectangleHeight / 2;
+
+    // Ball starting position
+    pingPongX = xPosMax / 2 - ballRadius / 2;
+    pingPongY = yPosMax / 2 - ballRadius / 2;
+
+    // Set random speed for the ball
+    global = getCurrentTime();
+    srand(global);
+    ballSpeedX = minSpeedX + (rand() / (float)RAND_MAX) * (maxSpeedX - minSpeedX);
+    ballSpeedY = minSpeedY + (rand() / (float)RAND_MAX) * (maxSpeedY - minSpeedY);
+
+    // Reset game timer
+    timeStart = 0;
+    timeEnd = 0;
+    resetTimer();
 }

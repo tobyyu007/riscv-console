@@ -19,3 +19,8 @@ void resetTimer()
 {
     ResetTimer();
 }
+
+uint32_t getCurrentTime()
+{
+    return GetCurrentTime();
+}
