@@ -1,7 +1,5 @@
-#include <graphic.h>
-#include <sprite_sizes.h>
-#include <stdio.h>
-#include <string.h>
+# include "group2.h"
+
 int createObject(SpriteSize size,int palette, int x, int y, int z, int canvasId){
     uint32_t Object = setObject(size,palette, x, y, z, canvasId);
     int objectId = CreateControlSprite(size, Object);
