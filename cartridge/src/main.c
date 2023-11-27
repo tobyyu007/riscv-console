@@ -27,8 +27,8 @@ int batXOffset = 20;      // Offset for the bat in the X axis
 
 // Ball size
 int ballRadius = 8;      // Radius of the ball
-float minSpeedX = 0.7;   // Minimum X axis speed of the ball
-float maxSpeedX = 1.0;   // Maximum X axis speed of the ball
+float minSpeedX = 0.5;   // Minimum X axis speed of the ball
+float maxSpeedX = 0.7;   // Maximum X axis speed of the ball
 float minSpeedY = -1.0; // Minimum Y axis speed of the ball
 float maxSpeedY = 1.0;  // Maximum Y axis speed of the ball
 
@@ -313,15 +313,15 @@ void handleCollision(float *speedX, float *speedY, float *pingPongX, float *ping
     float newSpeedY = 0;
     if (0 <= hitSegment && hitSegment < 1)
     {
-        newSpeedY = 1.0;
+        newSpeedY = 0.75;
     }
     else if (1 <= hitSegment && hitSegment < 2)
     {
-        newSpeedY = 0.75;
+        newSpeedY = 0.5;
     }
     else if (2 <= hitSegment && hitSegment < 3)
     {
-        newSpeedY = 0.5;
+        newSpeedY = 0.25;
     }
     else if (hitSegment == 3.0)
     {
@@ -333,11 +333,11 @@ void handleCollision(float *speedX, float *speedY, float *pingPongX, float *ping
     }
     else if (4 <= hitSegment && hitSegment < 5)
     {
-        newSpeedY = 0.75;
+        newSpeedY = 0.5;
     }
     else if (5 <= hitSegment && hitSegment <= 6)
     {
-        newSpeedY = 1.0;
+        newSpeedY = 0.75;
     }
 
     // Reflect the ball on the Y-axis
