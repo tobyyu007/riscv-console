@@ -50,10 +50,6 @@ float pingPongY = 0;
 float ballSpeedX = 0;
 float ballSpeedY = 0;
 
-// Game timer
-int timeStart = 0;
-int timeEnd = 0;
-
 int last_global = 0;
 int global = 0;
 
@@ -71,7 +67,6 @@ int main()
     int countdown = 1;
     global = getCurrentTime();
     bool gameStart = false;
-    bool gamePaused = false;
     enableInterrupt(CMDInterrupt);
 
     // Graphics intialization
@@ -128,6 +123,7 @@ int main()
                         if(checkInterruptTrigger(CMDInterrupt)){
                             clearInterruptTrigger(CMDInterrupt);
                             clearInterruptTrigger(VideoInterrupt);
+                            disableInterrupt(VideoInterrupt);
                         }
                     }
 
@@ -207,19 +203,21 @@ int main()
                         strcpy(Buffer, "Press D and J to restart");
                         showTextToLine(Buffer, SCREEN_ROWS / 2 + 2);
                     }
-                    if(timeEnd == 0){
-                        timeEnd = global;
-                    }
-                    sprintf(Buffer, "Playing Time: %d (sec)", (timeEnd - timeStart)/181);
+                    EndTimer();
+                    sprintf(Buffer, "Playing Time: %d (sec)", (timeElapsed())/181);
                     showTextToLine(Buffer, SCREEN_ROWS / 2);
                     displayMode(TEXT_MODE);
-
-                    // Play again
-                    if (checkDirectionTrigger(DirectionPad, DirectionRight) && checkDirectionTrigger(ToggleButtons, DirectionLeft))
-                    {
-                        // Initialize game
-                        initGame();
-                        displayMode(GRAPHICS_MODE);
+                    enableInterrupt(VideoInterrupt);
+                    while(checkInterruptTrigger(VideoInterrupt)){
+                        // Play again
+                        if (checkDirectionTrigger(DirectionPad, DirectionRight) && checkDirectionTrigger(ToggleButtons, DirectionLeft))
+                        {
+                            // Re-Initialize game
+                            initGame();
+                            displayMode(GRAPHICS_MODE);
+                            clearInterruptTrigger(VideoInterrupt);
+                            disableInterrupt(VideoInterrupt);
+                        }
                     }
                 }
 
@@ -441,7 +439,5 @@ void initGame(){
     ballSpeedY = minSpeedY + (rand() / (float)RAND_MAX) * (maxSpeedY - minSpeedY);
 
     // Reset game timer
-    timeStart = 0;
-    timeEnd = 0;
     resetTimer();
 }
