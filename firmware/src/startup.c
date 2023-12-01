@@ -71,12 +71,17 @@ void init(void){
     csr_enable_interrupts();    // Global interrupt enable
     MTIMECMP_LOW = 1;
     MTIMECMP_HIGH = 0;
+    // INTERRUPT_ENABLE_REGISTER |= (0 << CMIE_BIT);
 }
 
 extern volatile int global;
 // volatile uint32_t CMD_interrupt_count;
+volatile uint32_t video_interrupt_count;
 volatile uint32_t controller_status;
 volatile bool CMDInterrupted = false;
+volatile bool videoInterrupted = false;
+volatile bool videoInterruptDisable = false;
+volatile bool paused = false;
 
 void c_interrupt_handler(void){
     uint64_t NewCompare = (((uint64_t)MTIMECMP_HIGH)<<32) | MTIMECMP_LOW;
@@ -88,7 +93,14 @@ void c_interrupt_handler(void){
 
     if(INTERRUPT_PENDING_REGISTER & (1 << CMIE_BIT)){
         CMDInterrupted = true;
-        // CMD_interrupt_count++;
+        CMD_interrupt_count++;
+        // INTERRUPT_PENDING_REGISTER = (1 << CMIE_BIT);
+    }
+
+    if(INTERRUPT_PENDING_REGISTER & (1 << VIE_BIT)){
+        videoInterrupted = true;
+        video_interrupt_count++;
+        // INTERRUPT_PENDING_REGISTER = (1 << VIE_BIT);
     }
 }
 
@@ -165,14 +177,15 @@ uint32_t c_system_call(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg
         return 1;
     }
     else if(15 == call){  // event.h - CMDInterrupted()
-        if(CMDInterrupted){
-            CMDInterrupted = false;
-            INTERRUPT_PENDING_REGISTER |= (1 << CMIE_BIT);
-            return 1;
-        }
-        else{
-            return 0;
-        }
+        // if(CMDInterrupted){
+        //     CMDInterrupted = false;
+        //     // INTERRUPT_PENDING_REGISTER = (1 << CMIE_BIT);
+        //     return 1;
+        // }
+        // else{
+        //     return 0;
+        // }
+        return (INTERRUPT_PENDING_REGISTER & (1 << CMIE_BIT)) ? 1 : 0;
     }
     else if(16 == call){  // event.h - DisableCMDInterrupt()
         INTERRUPT_ENABLE_REGISTER |= (1 << CMIE_BIT);
@@ -197,6 +210,31 @@ uint32_t c_system_call(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg
     }
     else if(21 == call){  // timer.h - GetCurrentTime()
         return global;
+    }
+    else if(22 == call){  // event.h - EnableVideoInterrupt()
+        INTERRUPT_ENABLE_REGISTER &= (0 << VIE_BIT);
+        return 1;
+    }
+    else if(23 == call){  // event.h - VideoInterrupted()
+        // if(videoInterrupted){
+        //     videoInterrupted = false;
+        //     return 1;
+        // }
+        // else{
+        //     return 0;
+        // }
+        return (INTERRUPT_PENDING_REGISTER & (1 << VIE_BIT)) ? 1 : 0;
+    }
+    else if(24 == call){  // event.h - DisableVideoInterrupt()
+        INTERRUPT_ENABLE_REGISTER |= (1 << VIE_BIT);
+        videoInterrupted = false;
+        return 1;
+    }
+    else if(25 == call){  // event.h - clearCMDInterrupt()
+        INTERRUPT_PENDING_REGISTER = (1 << CMIE_BIT);
+    }
+    else if(26 == call){  // event.h - clearVideoInterrupt()
+        INTERRUPT_PENDING_REGISTER = (1 << VIE_BIT);
     }
     else if(30 == call){ // CreateControlSprite
         int result = createControlSprite(arg0, arg1);

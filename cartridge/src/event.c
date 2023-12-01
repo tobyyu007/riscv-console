@@ -4,6 +4,7 @@ bool controllerEventTriggered() {  // Check if event is triggered
     return checkControllerStatus();
 }
 
+
 bool checkDirectionTrigger(ControllerType controllerType, EventType eventType) {  // Check if the given controller's button is triggered
     Controller controller = {controllerType};
     Event event = {eventType};
@@ -39,16 +40,54 @@ bool checkDirectionTrigger(ControllerType controllerType, EventType eventType) {
 }
 
 
-void enableCMDInterrupt(){
-    EnableCMDInterrupt();
+void enableInterrupt(InterruptType interruptType) {  // Enable interrupt
+    Interrupt interrupt = {interruptType};
+    switch (interrupt.interruptType) {
+        case VideoInterrupt:
+            EnableVideoInterrupt();
+            break;
+        case CMDInterrupt:
+            EnableCMDInterrupt();
+            break;
+    }
 }
 
 
-bool CMDPressed(){
-    return CMDInterrupted();
+bool checkInterruptTrigger(InterruptType interruptType) {  // Check if interrupt is triggered
+    Interrupt interrupt = {interruptType};
+    switch (interrupt.interruptType) {
+        case VideoInterrupt:
+            return VideoInterrupted();
+        case CMDInterrupt:
+            return CMDInterrupted();
+    }
+
+    return false;
 }
 
 
-void disableCMDInterrupt(){
-    DisableCMDInterrupt();
+bool clearInterruptTrigger(InterruptType interruptType) {  // Clear interrupt
+    Interrupt interrupt = {interruptType};
+    switch (interrupt.interruptType) {
+        case VideoInterrupt:
+            ClearVideoInterrupt();
+            break;
+        case CMDInterrupt:
+            ClearCMDInterrupt();
+            break;
+    }
+
+    return false;
+}
+
+void disableInterrupt(InterruptType interruptType) {  // Disable interrupt
+    Interrupt interrupt = {interruptType};
+    switch (interrupt.interruptType) {
+        case VideoInterrupt:
+            DisableVideoInterrupt();
+            break;
+        case CMDInterrupt:
+            DisableCMDInterrupt();
+            break;
+    }
 }
