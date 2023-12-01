@@ -72,7 +72,7 @@ int main()
     global = getCurrentTime();
     bool gameStart = false;
     bool gamePaused = false;
-    INTERRUPT_ENABLE_REGISTER &= (0 << CMIE_BIT);
+    enableInterrupt(CMDInterrupt);
 
     // Graphics intialization
     displayMode(GRAPHICS_MODE);
@@ -120,20 +120,19 @@ int main()
 
             else  // Game is started
             {
-                if(INTERRUPT_PENDING_REGISTER & (1 << CMIE_BIT)){
-                    // clearInterruptTrigger(CMDInterrupt);
-                    INTERRUPT_PENDING_REGISTER = (1 << CMIE_BIT);
+                if(checkInterruptTrigger(CMDInterrupt)){
+                    clearInterruptTrigger(CMDInterrupt);
                     pauseObjectID = createObject(LARGE_SPRITE, FULLY_OPAQUE, xPosMax / 2 - LARGE_SPRITE_SIZE / 2, yPosMax / 2 - LARGE_SPRITE_SIZE / 2, 0, pauseCanvasID);
-                    INTERRUPT_ENABLE_REGISTER &= (0 << VIE_BIT);
-                     while(INTERRUPT_PENDING_REGISTER & (1 << VIE_BIT)){
-                        if(INTERRUPT_PENDING_REGISTER & (1 << CMIE_BIT)){
-                            INTERRUPT_PENDING_REGISTER = (1 << VIE_BIT);
-                            INTERRUPT_PENDING_REGISTER = (1 << CMIE_BIT);
+                    enableInterrupt(VideoInterrupt);
+                     while(checkInterruptTrigger(VideoInterrupt)){
+                        if(checkInterruptTrigger(CMDInterrupt)){
+                            clearInterruptTrigger(CMDInterrupt);
+                            clearInterruptTrigger(VideoInterrupt);
                         }
                     }
 
                     // 下面兩個沒有效果
-                    controlObject(LARGE_SPRITE, FULLY_TRANSPARENT, xPosMax / 2 - LARGE_SPRITE_SIZE / 2, yPosMax / 2 - LARGE_SPRITE_SIZE / 2, 0, pauseCanvasID, pauseObjectID);
+                    controlObject(LARGE_SPRITE, 3, xPosMax / 2 - LARGE_SPRITE_SIZE / 2, yPosMax / 2 - LARGE_SPRITE_SIZE / 2, 0, pauseCanvasID, pauseObjectID);
                     freeObject(LARGE_SPRITE, pauseObjectID);
                 }
 
@@ -299,7 +298,7 @@ void fillCanvas()
             if (distanceSquared >= radiusSquared - thicknessSquared && distanceSquared <= radiusSquared + thicknessSquared) {
                 pauseCanvas[y * LARGE_SPRITE_SIZE + x] = YELLOW;
             } else {
-                pauseCanvas[y * LARGE_SPRITE_SIZE + x] = 0; // Transparent or background color
+                pauseCanvas[y * LARGE_SPRITE_SIZE + x] = NO_COLOR; // Transparent or background color
             }
 
             // Drawing the rectangles inside the circle
