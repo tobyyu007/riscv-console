@@ -27,6 +27,17 @@ typedef struct
     EventType direction;
 } Event;
 
+typedef enum
+{
+    VideoInterrupt,
+    CMDInterrupt
+} InterruptType;
+
+typedef struct
+{
+    InterruptType interruptType;
+} Interrupt;
+
 uint32_t checkControllerStatus(void);
 uint32_t DirectionPadUp(void);
 uint32_t DirectionPadDown(void);
@@ -40,6 +51,10 @@ uint32_t ToggleButtonsDown(void);
 uint32_t EnableCMDInterrupt(void);
 uint32_t CMDInterrupted(void);
 uint32_t DisableCMDInterrupt(void);
+uint32_t EnableVideoInterrupt(void);
+uint32_t VideoInterrupted(void);
+uint32_t DisableVideoInterrupt(void);
+
 
 /**
  * @brief Checks if a controller event has been triggered.
@@ -58,20 +73,25 @@ bool controllerEventTriggered();
 bool checkDirectionTrigger(ControllerType controllerType, EventType eventType);
 
 /**
- * @brief Enables the interrupt for the CMD button.
- */
-void enableCMDInterrupt();
-
-/**
- * @brief Checks if the CMD button is currently pressed.
+ * Enables the specified interrupt type.
  *
- * @return true if the CMD button is pressed, false otherwise.
+ * @param interruptType The type of interrupt to enable.
  */
-bool CMDPressed();
+void enableInterrupt(InterruptType interruptType);
 
 /**
- * @brief Disables the interrupt for the CMD button.
+ * Checks if the specified interrupt type has been triggered.
+ *
+ * @param interruptType The type of interrupt to check.
+ * @return True if the interrupt has been triggered, false otherwise.
  */
-void disableCMDInterrupt();
+bool checkInterruptTrigger(InterruptType interruptType);
+
+/**
+ * Disables the specified interrupt type.
+ *
+ * @param interruptType The type of interrupt to disable.
+ */
+void disableInterrupt(InterruptType interruptType);
 
 #endif // EVENT_H

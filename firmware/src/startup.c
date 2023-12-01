@@ -75,8 +75,12 @@ void init(void){
 
 extern volatile int global;
 // volatile uint32_t CMD_interrupt_count;
+volatile uint32_t video_interrupt_count;
 volatile uint32_t controller_status;
 volatile bool CMDInterrupted = false;
+volatile bool videoInterrupted = false;
+volatile bool videoInterruptDisable = false;
+volatile bool paused = false;
 
 void c_interrupt_handler(void){
     uint64_t NewCompare = (((uint64_t)MTIMECMP_HIGH)<<32) | MTIMECMP_LOW;
@@ -88,7 +92,24 @@ void c_interrupt_handler(void){
 
     if(INTERRUPT_PENDING_REGISTER & (1 << CMIE_BIT)){
         CMDInterrupted = true;
-        // CMD_interrupt_count++;
+        // if(!paused){
+        //     INTERRUPT_ENABLE_REGISTER |= (1 << VIE_BIT);
+        //     paused = true;
+        // }
+        // else{
+        //     INTERRUPT_PENDING_REGISTER |= (1 << VIE_BIT);
+        //     INTERRUPT_ENABLE_REGISTER &= (0 << VIE_BIT);
+        //     paused = false;
+        // }
+        // INTERRUPT_PENDING_REGISTER |= (1 << CMIE_BIT);
+        // INTERRUPT_PENDING_REGISTER |= (1 << VIE_BIT);
+        // INTERRUPT_ENABLE_REGISTER &= (0 << VIE_BIT);
+        CMD_interrupt_count++;
+    }
+
+    if(INTERRUPT_PENDING_REGISTER & (1 << VIE_BIT)){
+        videoInterrupted = true;
+        video_interrupt_count++;
     }
 }
 
@@ -166,8 +187,8 @@ uint32_t c_system_call(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg
     }
     else if(15 == call){  // event.h - CMDInterrupted()
         if(CMDInterrupted){
-            CMDInterrupted = false;
             INTERRUPT_PENDING_REGISTER |= (1 << CMIE_BIT);
+            CMDInterrupted = false;
             return 1;
         }
         else{
@@ -176,6 +197,7 @@ uint32_t c_system_call(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg
     }
     else if(16 == call){  // event.h - DisableCMDInterrupt()
         INTERRUPT_ENABLE_REGISTER |= (1 << CMIE_BIT);
+        MODE_REGISTER = 0; // 0: text mode/ 1: graphic mode
         return 1;
     }
     else if(17 == call){  // timer.h - StartTimer()
@@ -197,6 +219,26 @@ uint32_t c_system_call(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg
     }
     else if(21 == call){  // timer.h - GetCurrentTime()
         return global;
+    }
+    else if(22 == call){  // event.h - EnableVideoInterrupt()
+        INTERRUPT_ENABLE_REGISTER |= (1 << VIE_BIT);
+        return 1;
+    }
+    else if(23 == call){  // event.h - VideoInterrupted()
+        if(videoInterrupted){
+            videoInterrupted = false;
+            INTERRUPT_PENDING_REGISTER |= (1 << VIE_BIT);
+            return 1;
+        }
+        else{
+            return 0;
+        }
+    }
+    else if(24 == call){  // event.h - DisableVideoInterrupt()
+        INTERRUPT_PENDING_REGISTER |= (1 << VIE_BIT);
+        INTERRUPT_ENABLE_REGISTER &= (0 << VIE_BIT);
+        videoInterrupted = false;
+        return 1;
     }
     else if(30 == call){ // CreateControlSprite
         int result = createControlSprite(arg0, arg1);
