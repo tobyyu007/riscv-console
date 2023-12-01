@@ -90,31 +90,41 @@ int controlSprite(SpriteSize size, uint32_t spriteControl, int objectId){
      return 1;
 }
 
-int freeControlSprite(SpriteSize size, int spriteIndex) {
+int freeControlSprite(SpriteSize size, int objectId) {
     uint32_t *bitmap;
     size_t bitmapSize;
+    size_t spriteSize;
+    volatile uint32_t *spriteBase;
 
     switch (size) {
         case LARGE_SPRITE:
             bitmap = largeSpriteControlBitmap;
             bitmapSize = NUM_LARGE_CONTROLS;
+            spriteSize = LARGE_SPRITE_CONTROL_SIZE;
+            spriteBase = (volatile uint32_t *)LARGE_SPRITE_CONTROL_BASE;
             break;
         case MEDIUM_SPRITE:
             bitmap = mediumSpriteControlBitmap;
             bitmapSize = NUM_MEDIUM_CONTROLS;
+            spriteSize = MEDIUM_SPRITE_CONTROL_SIZE;
+            spriteBase = (volatile uint32_t *)MEDIUM_SPRITE_CONTROL_BASE;
             break;
         case SMALL_SPRITE:
             bitmap = smallSpriteControlBitmap;
             bitmapSize = NUM_SMALL_CONTROLS;
+            spriteSize = SMALL_SPRITE_CONTROL_SIZE;
+            spriteBase = (volatile uint32_t *)SMALL_SPRITE_CONTROL_BASE;
             break;
         default:
             return -1; // Invalid sprite size
     }
 
-    if (spriteIndex >= 0 && spriteIndex < bitmapSize) {
-        clearBitmap(bitmap, spriteIndex);
+    if (objectId >= 0 && objectId < bitmapSize) {
+        clearBitmap(bitmap, objectId);
+        spriteBase[objectId] = 0;
+        return 1;
     }
-    return 1;
+    return 0;
 }
 
 // Finds the first free sprite slot in the bitmap
