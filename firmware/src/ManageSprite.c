@@ -85,19 +85,27 @@ int createSprite(SpriteSize size, const uint8_t *buffer, size_t bufferSize) {
 int freeSprite(SpriteSize size, int spriteIndex) {
     uint8_t *bitmap;
     size_t bitmapSize;
+    size_t spriteSize;
+    volatile uint8_t *spriteBase;
 
     switch (size) {
         case LARGE_SPRITE:
             bitmap = largeSpriteBitmap;
             bitmapSize = NUM_LARGE_SPRITES;
+            spriteSize = LARGE_SPRITE_SIZE;
+            spriteBase = (volatile uint8_t *)LARGE_SPRITE_BASE;
             break;
         case MEDIUM_SPRITE:
             bitmap = mediumSpriteBitmap;
             bitmapSize = NUM_MEDIUM_SPRITES;
+            spriteSize = MEDIUM_SPRITE_SIZE;
+            spriteBase = (volatile uint8_t *)MEDIUM_SPRITE_BASE;
             break;
         case SMALL_SPRITE:
             bitmap = smallSpriteBitmap;
             bitmapSize = NUM_SMALL_SPRITES;
+            spriteSize = SMALL_SPRITE_SIZE;
+            spriteBase = (volatile uint8_t *)SMALL_SPRITE_BASE;
             break;
         default:
             return -1; // Invalid sprite size
@@ -105,6 +113,7 @@ int freeSprite(SpriteSize size, int spriteIndex) {
 
     if (spriteIndex >= 0 && spriteIndex < bitmapSize) {
         clearBitmap(bitmap, spriteIndex);
+        spriteBase[spriteIndex] = 0;
     }
     return 1;
 }

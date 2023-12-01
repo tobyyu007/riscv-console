@@ -9,16 +9,20 @@
 #include "memory.h"
 #include "timer.h"
 
+#define INTERRUPT_ENABLE_REGISTER (*((volatile uint32_t *)0x40000000))
+#define INTERRUPT_PENDING_REGISTER (*((volatile uint32_t *)0x40000004))
+#define MODE_REGISTER     (*((volatile uint32_t *)0x500F6780))
+#define VIE_BIT 1
+#define CMIE_BIT 2
+
 // Canvas
 uint8_t batCanvas[LARGE_SPRITE_SIZE * LARGE_SPRITE_SIZE];
 uint8_t ballCanvas[SMALL_SPRITE_SIZE * SMALL_SPRITE_SIZE];
-
+uint8_t pauseCanvas[LARGE_SPRITE_SIZE * LARGE_SPRITE_SIZE];
 
 // Screen Resolution
 int xPosMax = 0;
 int yPosMax = 0;
-
-
 
 // Rectangle size
 int rectangleHeight = 60; // Height of the rectangle (must be 6's multiple)
@@ -46,15 +50,10 @@ float pingPongY = 0;
 float ballSpeedX = 0;
 float ballSpeedY = 0;
 
-// Game timer
-int timeStart = 0;
-int timeEnd = 0;
-
 int last_global = 0;
 int global = 0;
 
 void fillCanvas();
-
 bool collision(int playerTopLeftX, int playerTopLeftY, int pingPongX, int pingPongY, int rectangleWidth, int rectangleHeight, int ballRadius);
 void handleCollision(float *speedX, float *speedY, float *pingPongX, float *pingPongY, int batX, int batY);
 bool checkCollision(int playerTopLeftX, int playerTopLeftY, int pingPongX, int pingPongY, int rectangleWidth, int rectangleHeight, int ballRadius);
@@ -62,16 +61,21 @@ void clearTextData();
 void showTextToLine(const char* text, int line);
 void initGame();
 
+
 int main()
 {
     int countdown = 1;
     global = getCurrentTime();
+    bool gameStart = false;
+    enableInterrupt(CMDInterrupt);
+
+    // Graphics intialization
     displayMode(GRAPHICS_MODE);
-
     struct windowSize screenResolution = getWindowSize();
-
     xPosMax = screenResolution.width;
     yPosMax = screenResolution.height;
+    char *Buffer = AllocateMemory(32);
+
     // Initialize game
     initGame();
 
@@ -80,29 +84,29 @@ int main()
     // create canvas
     uint32_t batCanvasID = createCanvas(LARGE_SPRITE, batCanvas, LARGE_SPRITE_SIZE * LARGE_SPRITE_SIZE);
     uint32_t ballCanvasID = createCanvas(SMALL_SPRITE, ballCanvas, SMALL_SPRITE_SIZE * SMALL_SPRITE_SIZE);
+    uint32_t pauseCanvasID = createCanvas(LARGE_SPRITE, pauseCanvas, LARGE_SPRITE_SIZE * LARGE_SPRITE_SIZE);
 
     // create object
     uint32_t player1BatObjectID = createObject(LARGE_SPRITE, FULLY_OPAQUE, player1X, player1Y, 0, batCanvasID);
     uint32_t player2BatObjectID = createObject(LARGE_SPRITE, FULLY_OPAQUE, player2X, player2Y, 0, batCanvasID);
     uint32_t ballObjectID = createObject(SMALL_SPRITE, FULLY_OPAQUE, pingPongX, pingPongY, 0, ballCanvasID);
+    // uint32_t pauseObjectID = createObject(LARGE_SPRITE, FULLY_TRANSPARENT, xPosMax / 2 - LARGE_SPRITE_SIZE / 2, yPosMax / 2 - LARGE_SPRITE_SIZE / 2, 0, pauseCanvasID);  // 這個沒有作用
+    uint32_t pauseObjectID = 0;
 
-    bool start = false;
-    char *Buffer = AllocateMemory(32);
 
     while (1)
     {
         if (global != last_global)
         {
-            // Check if the game is started
-            if (start == false)
+            if (gameStart == false)
             {
+                // Before starting the game
                 strcpy(Buffer, "Press D and J to start");
                 showTextToLine(Buffer, SCREEN_ROWS / 2);
-                displayMode(TEXT_MODE); // 0: text mode/ 1: graphic mode
-
+                displayMode(TEXT_MODE);
                 if (checkDirectionTrigger(DirectionPad, DirectionRight) && checkDirectionTrigger(ToggleButtons, DirectionLeft))
                 {
-                    start = true;
+                    gameStart = true;
                     displayMode(GRAPHICS_MODE);
                     clearTextData();
                     StartTimer();
@@ -111,7 +115,24 @@ int main()
 
             else  // Game is started
             {
-                if (controllerEventTriggered())
+                if(checkInterruptTrigger(CMDInterrupt)){
+                    clearInterruptTrigger(CMDInterrupt);
+                    pauseObjectID = createObject(LARGE_SPRITE, FULLY_OPAQUE, xPosMax / 2 - LARGE_SPRITE_SIZE / 2, yPosMax / 2 - LARGE_SPRITE_SIZE / 2, 0, pauseCanvasID);
+                    enableInterrupt(VideoInterrupt);
+                     while(checkInterruptTrigger(VideoInterrupt)){
+                        if(checkInterruptTrigger(CMDInterrupt)){
+                            clearInterruptTrigger(CMDInterrupt);
+                            clearInterruptTrigger(VideoInterrupt);
+                            disableInterrupt(VideoInterrupt);
+                        }
+                    }
+
+                    // 下面兩個沒有效果
+                    controlObject(LARGE_SPRITE, 3, xPosMax / 2 - LARGE_SPRITE_SIZE / 2, yPosMax / 2 - LARGE_SPRITE_SIZE / 2, 0, pauseCanvasID, pauseObjectID);
+                    freeObject(LARGE_SPRITE, pauseObjectID);
+                }
+
+                else if (controllerEventTriggered())
                 {
                     if (checkDirectionTrigger(DirectionPad, DirectionUp))
                     { // Up
@@ -182,19 +203,21 @@ int main()
                         strcpy(Buffer, "Press D and J to restart");
                         showTextToLine(Buffer, SCREEN_ROWS / 2 + 2);
                     }
-                    if(timeEnd == 0){
-                        timeEnd = global;
-                    }
-                    sprintf(Buffer, "Playing Time: %d (sec)", (timeEnd - timeStart)/181);
+                    EndTimer();
+                    sprintf(Buffer, "Playing Time: %d (sec)", (timeElapsed())/181);
                     showTextToLine(Buffer, SCREEN_ROWS / 2);
                     displayMode(TEXT_MODE);
-
-                    // Play again
-                    if (checkDirectionTrigger(DirectionPad, DirectionRight) && checkDirectionTrigger(ToggleButtons, DirectionLeft))
-                    {
-                        // Initialize game
-                        initGame();
-                        displayMode(GRAPHICS_MODE);
+                    enableInterrupt(VideoInterrupt);
+                    while(checkInterruptTrigger(VideoInterrupt)){
+                        // Play again
+                        if (checkDirectionTrigger(DirectionPad, DirectionRight) && checkDirectionTrigger(ToggleButtons, DirectionLeft))
+                        {
+                            // Re-Initialize game
+                            initGame();
+                            displayMode(GRAPHICS_MODE);
+                            clearInterruptTrigger(VideoInterrupt);
+                            disableInterrupt(VideoInterrupt);
+                        }
                     }
                 }
 
@@ -213,7 +236,7 @@ int main()
             countdown = 10000;
         }
     }
-    return 0;
+     return 0;
 }
 
 void fillCanvas()
@@ -246,6 +269,40 @@ void fillCanvas()
             else
             {
                 ballCanvas[y * SMALL_SPRITE_SIZE + x] = NO_COLOR;
+            }
+        }
+    }
+
+    // Fill out pause icon (large canvas)
+    centerX = LARGE_SPRITE_SIZE / 2;
+    centerY = LARGE_SPRITE_SIZE / 2;
+    int CIRCLE_THICKNESS = 5;
+    int radius = LARGE_SPRITE_SIZE / 2 - CIRCLE_THICKNESS; // Adjust radius for the thickness
+
+    // Dimensions for the inner rectangles (pause button bars)
+    int rectWidth = LARGE_SPRITE_SIZE / 8; // Width of each rectangle
+    int rectHeight = LARGE_SPRITE_SIZE / 2; // Height of each rectangle
+    int rect1XStart = centerX - rectWidth * 3 / 2; // X start for the first rectangle
+    int rect2XStart = centerX + rectWidth / 2; // X start for the second rectangle
+
+    for (int y = 0; y < LARGE_SPRITE_SIZE; y++) {
+        for (int x = 0; x < LARGE_SPRITE_SIZE; x++) {
+            int dx = x - centerX;
+            int dy = y - centerY;
+            int distanceSquared = dx * dx + dy * dy;
+            int radiusSquared = radius * radius;
+            int thicknessSquared = CIRCLE_THICKNESS * CIRCLE_THICKNESS;
+            // Drawing the thin outer ring of the circle
+            if (distanceSquared >= radiusSquared - thicknessSquared && distanceSquared <= radiusSquared + thicknessSquared) {
+                pauseCanvas[y * LARGE_SPRITE_SIZE + x] = YELLOW;
+            } else {
+                pauseCanvas[y * LARGE_SPRITE_SIZE + x] = NO_COLOR; // Transparent or background color
+            }
+
+            // Drawing the rectangles inside the circle
+            if ((x >= rect1XStart && x < rect1XStart + rectWidth && y >= centerY - rectHeight / 2 && y < centerY + rectHeight / 2) ||
+                (x >= rect2XStart && x < rect2XStart + rectWidth && y >= centerY - rectHeight / 2 && y < centerY + rectHeight / 2)) {
+                pauseCanvas[y * LARGE_SPRITE_SIZE + x] = YELLOW; // Inside the rectangle
             }
         }
     }
@@ -382,7 +439,5 @@ void initGame(){
     ballSpeedY = minSpeedY + (rand() / (float)RAND_MAX) * (maxSpeedY - minSpeedY);
 
     // Reset game timer
-    timeStart = 0;
-    timeEnd = 0;
     resetTimer();
 }

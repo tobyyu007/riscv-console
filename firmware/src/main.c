@@ -18,6 +18,7 @@ volatile uint32_t *GRAPHICS_MODE = (volatile uint32_t *)(0x500F6780);
 void initSpriteSystem(void);
 void initializePalette(void);
 
+int count = 0;
 
 int main() {
     int a = 4;
@@ -37,8 +38,8 @@ int main() {
             FunctionPtr Fun = (FunctionPtr)((*CartridgeStatus) & 0xFFFFFFFC);
             Fun();
         }
-        // sprintf(Buffer, "CMD Interrupts: %u", CMD_interrupt_count);
-        // strcpy((char *)VIDEO_MEMORY + 16, Buffer);
+        sprintf(Buffer, "Video Interrupts: %u counter: %d", CMD_interrupt_count, count++);
+        strcpy((char *)VIDEO_MEMORY + 16, Buffer);
     }
     return 0;
 }
