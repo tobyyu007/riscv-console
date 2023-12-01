@@ -65,45 +65,6 @@ void clearTextData();
 void showTextToLine(const char* text, int line);
 void initGame();
 
-// int main(){
-//     int countdown = 1;
-//     global = getCurrentTime();
-//     clearTextData();
-//     displayMode(TEXT_MODE);
-//     int CMDCount = 0;
-//     int in = 0;
-//     bool paused = false;
-//     char *Buffer = AllocateMemory(32);
-//     sprintf(Buffer, "CMD Count = %d", CMDCount);
-//     showTextToLine(Buffer, SCREEN_ROWS / 2);
-//     while(1){
-//         if (global != last_global)
-//         {
-//             if(checkInterruptTrigger(CMDInterrupt)){
-//                 if(!paused){
-//                     CMDCount++;
-//                     // disableInterrupt(CMDInterrupt);
-//                     paused = true;
-//                 }
-//                 else{
-//                     in++;
-//                     paused = false;
-//                 }
-//             }
-//             sprintf(Buffer, "CMD Count = %d, in = %d", CMDCount, in);
-//             showTextToLine(Buffer, SCREEN_ROWS / 2);
-//             last_global = global;
-//         }
-//         countdown--;
-//         if (!countdown)
-//         {
-//             global++;
-//             countdown = 100000;
-//         }
-//     }
-//     return 0;
-// }
-
 
 int main()
 {
@@ -161,18 +122,21 @@ int main()
 
             else  // Game is started
             {
-                if(checkDirectionTrigger(ToggleButtons, DirectionRight)){
+                if(checkInterruptTrigger(CMDInterrupt)){
                     pauseObjectID = createObject(LARGE_SPRITE, FULLY_OPAQUE, xPosMax / 2 - LARGE_SPRITE_SIZE / 2, yPosMax / 2 - LARGE_SPRITE_SIZE / 2, 0, pauseCanvasID);
-                    gamePaused = true;
                     CMDCount += 1;
-                    INTERRUPT_PENDING_REGISTER |= (1 << VIE_BIT);
-                    enableInterrupt(VideoInterrupt);
+                    // enableInterrupt(VideoInterrupt);
+                    INTERRUPT_ENABLE_REGISTER |= (1 << VIE_BIT);
                     // displayMode(TEXT_MODE);
-                    while(checkDirectionTrigger(DirectionPad, DirectionLeft) == false){
-                        disableInterrupt(VideoInterrupt);
-                        sprintf(Buffer, "CMD count %d", CMDCount++);
-                        showTextToLine(Buffer, SCREEN_ROWS / 2);
+                    while(checkInterruptTrigger(CMDInterrupt) == false){
+                        CMDCount++;
+                        INTERRUPT_ENABLE_REGISTER &= (0 << VIE_BIT);
+                        freeObject(LARGE_SPRITE, pauseObjectID);
                     }
+                    // INTERRUPT_PENDING_REGISTER |= (1 << VIE_BIT);
+                    // INTERRUPT_ENABLE_REGISTER &= (0 << VIE_BIT);
+                    controlObject(LARGE_SPRITE, FULLY_TRANSPARENT, xPosMax / 2 - LARGE_SPRITE_SIZE / 2, yPosMax / 2 - LARGE_SPRITE_SIZE / 2, 0, pauseCanvasID, pauseObjectID);
+                    freeObject(LARGE_SPRITE, pauseObjectID);
                 }
 
                 else if (controllerEventTriggered())
