@@ -161,7 +161,7 @@ uint32_t c_system_call(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg
         return (controller_status & 0x80) ? 1 : 0;
     }
     else if(14 == call){  // event.h - EnableCMDInterrupt()
-        INTERRUPT_ENABLE_REGISTER |= (1 << CMIE_BIT);
+        INTERRUPT_ENABLE_REGISTER &= (0 << CMIE_BIT);
         return 1;
     }
     else if(15 == call){  // event.h - CMDInterrupted()
@@ -175,7 +175,7 @@ uint32_t c_system_call(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg
         }
     }
     else if(16 == call){  // event.h - DisableCMDInterrupt()
-        INTERRUPT_ENABLE_REGISTER &= (0 << CMIE_BIT);
+        INTERRUPT_ENABLE_REGISTER |= (1 << CMIE_BIT);
         return 1;
     }
     else if(17 == call){  // timer.h - StartTimer()
