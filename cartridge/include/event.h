@@ -54,6 +54,8 @@ uint32_t DisableCMDInterrupt(void);
 uint32_t EnableVideoInterrupt(void);
 uint32_t VideoInterrupted(void);
 uint32_t DisableVideoInterrupt(void);
+uint32_t ClearVideoInterrupt(void);
+uint32_t ClearCMDInterrupt(void);
 
 
 /**
@@ -86,6 +88,16 @@ void enableInterrupt(InterruptType interruptType);
  * @return True if the interrupt has been triggered, false otherwise.
  */
 bool checkInterruptTrigger(InterruptType interruptType);
+
+/**
+ * @brief Clears the trigger for the specified interrupt type.
+ *
+ * This function clears the trigger for the specified interrupt type.
+ *
+ * @param interruptType The type of interrupt to clear the trigger for.
+ * @return true if the trigger was successfully cleared, false otherwise.
+ */
+bool clearInterruptTrigger(InterruptType interruptType);
 
 /**
  * Disables the specified interrupt type.

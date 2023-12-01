@@ -179,7 +179,7 @@ uint32_t c_system_call(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg
     else if(15 == call){  // event.h - CMDInterrupted()
         if(CMDInterrupted){
             CMDInterrupted = false;
-            INTERRUPT_PENDING_REGISTER = (1 << CMIE_BIT);
+            // INTERRUPT_PENDING_REGISTER = (1 << CMIE_BIT);
             return 1;
         }
         else{
@@ -188,7 +188,6 @@ uint32_t c_system_call(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg
     }
     else if(16 == call){  // event.h - DisableCMDInterrupt()
         INTERRUPT_ENABLE_REGISTER |= (1 << CMIE_BIT);
-        MODE_REGISTER = 0; // 0: text mode/ 1: graphic mode
         return 1;
     }
     else if(17 == call){  // timer.h - StartTimer()
@@ -212,13 +211,12 @@ uint32_t c_system_call(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg
         return global;
     }
     else if(22 == call){  // event.h - EnableVideoInterrupt()
-        INTERRUPT_ENABLE_REGISTER |= (0 << VIE_BIT);
+        INTERRUPT_ENABLE_REGISTER |= (1 << VIE_BIT);
         return 1;
     }
     else if(23 == call){  // event.h - VideoInterrupted()
         if(videoInterrupted){
             videoInterrupted = false;
-            INTERRUPT_PENDING_REGISTER = (1 << VIE_BIT);
             return 1;
         }
         else{
@@ -226,10 +224,15 @@ uint32_t c_system_call(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg
         }
     }
     else if(24 == call){  // event.h - DisableVideoInterrupt()
-        INTERRUPT_PENDING_REGISTER |= (1 << VIE_BIT);
-        INTERRUPT_ENABLE_REGISTER &= (0 << VIE_BIT);
+        INTERRUPT_ENABLE_REGISTER |= (1 << VIE_BIT);
         videoInterrupted = false;
         return 1;
+    }
+    else if(25 == call){  // event.h - clearCMDInterrupt()
+        INTERRUPT_PENDING_REGISTER = (1 << CMIE_BIT);
+    }
+    else if(26 == call){  // event.h - clearVideoInterrupt()
+        INTERRUPT_PENDING_REGISTER = (1 << VIE_BIT);
     }
     else if(30 == call){ // CreateControlSprite
         int result = createControlSprite(arg0, arg1);

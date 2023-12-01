@@ -72,9 +72,7 @@ int main()
     global = getCurrentTime();
     bool gameStart = false;
     bool gamePaused = false;
-    enableInterrupt(CMDInterrupt);
-    int CMDCount = 0;
-    int in = 0;
+    INTERRUPT_ENABLE_REGISTER &= (0 << CMIE_BIT);
 
     // Graphics intialization
     displayMode(GRAPHICS_MODE);
@@ -122,13 +120,15 @@ int main()
 
             else  // Game is started
             {
-                if(checkInterruptTrigger(CMDInterrupt)){
+                if(INTERRUPT_PENDING_REGISTER & (1 << CMIE_BIT)){
+                    // clearInterruptTrigger(CMDInterrupt);
+                    INTERRUPT_PENDING_REGISTER = (1 << CMIE_BIT);
                     pauseObjectID = createObject(LARGE_SPRITE, FULLY_OPAQUE, xPosMax / 2 - LARGE_SPRITE_SIZE / 2, yPosMax / 2 - LARGE_SPRITE_SIZE / 2, 0, pauseCanvasID);
-                    CMDCount += 1;
-                    enableInterrupt(VideoInterrupt);
-                    while(INTERRUPT_PENDING_REGISTER & (1 << VIE_BIT)){
-                        if(checkInterruptTrigger(CMDInterrupt)){
+                    INTERRUPT_ENABLE_REGISTER &= (0 << VIE_BIT);
+                     while(INTERRUPT_PENDING_REGISTER & (1 << VIE_BIT)){
+                        if(INTERRUPT_PENDING_REGISTER & (1 << CMIE_BIT)){
                             INTERRUPT_PENDING_REGISTER = (1 << VIE_BIT);
+                            INTERRUPT_PENDING_REGISTER = (1 << CMIE_BIT);
                         }
                     }
 

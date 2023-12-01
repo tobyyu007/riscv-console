@@ -66,6 +66,20 @@ bool checkInterruptTrigger(InterruptType interruptType) {  // Check if interrupt
 }
 
 
+bool clearInterruptTrigger(InterruptType interruptType) {  // Clear interrupt
+    Interrupt interrupt = {interruptType};
+    switch (interrupt.interruptType) {
+        case VideoInterrupt:
+            ClearVideoInterrupt();
+            break;
+        case CMDInterrupt:
+            ClearCMDInterrupt();
+            break;
+    }
+
+    return false;
+}
+
 void disableInterrupt(InterruptType interruptType) {  // Disable interrupt
     Interrupt interrupt = {interruptType};
     switch (interrupt.interruptType) {
