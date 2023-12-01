@@ -71,6 +71,7 @@ void init(void){
     csr_enable_interrupts();    // Global interrupt enable
     MTIMECMP_LOW = 1;
     MTIMECMP_HIGH = 0;
+    // INTERRUPT_ENABLE_REGISTER |= (0 << CMIE_BIT);
 }
 
 extern volatile int global;
@@ -93,11 +94,13 @@ void c_interrupt_handler(void){
     if(INTERRUPT_PENDING_REGISTER & (1 << CMIE_BIT)){
         CMDInterrupted = true;
         CMD_interrupt_count++;
+        // INTERRUPT_PENDING_REGISTER = (1 << CMIE_BIT);
     }
 
     if(INTERRUPT_PENDING_REGISTER & (1 << VIE_BIT)){
         videoInterrupted = true;
         video_interrupt_count++;
+        // INTERRUPT_PENDING_REGISTER = (1 << VIE_BIT);
     }
 }
 
@@ -176,7 +179,7 @@ uint32_t c_system_call(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg
     else if(15 == call){  // event.h - CMDInterrupted()
         if(CMDInterrupted){
             CMDInterrupted = false;
-            INTERRUPT_PENDING_REGISTER |= (1 << CMIE_BIT);
+            INTERRUPT_PENDING_REGISTER = (1 << CMIE_BIT);
             return 1;
         }
         else{
@@ -209,13 +212,13 @@ uint32_t c_system_call(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg
         return global;
     }
     else if(22 == call){  // event.h - EnableVideoInterrupt()
-        INTERRUPT_ENABLE_REGISTER |= (1 << VIE_BIT);
+        INTERRUPT_ENABLE_REGISTER |= (0 << VIE_BIT);
         return 1;
     }
     else if(23 == call){  // event.h - VideoInterrupted()
         if(videoInterrupted){
             videoInterrupted = false;
-            INTERRUPT_PENDING_REGISTER |= (1 << VIE_BIT);
+            INTERRUPT_PENDING_REGISTER = (1 << VIE_BIT);
             return 1;
         }
         else{

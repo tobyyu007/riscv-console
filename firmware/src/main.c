@@ -38,7 +38,7 @@ int main() {
             FunctionPtr Fun = (FunctionPtr)((*CartridgeStatus) & 0xFFFFFFFC);
             Fun();
         }
-        sprintf(Buffer, "Video Interrupts: %u counter: %d", video_interrupt_count, count++);
+        sprintf(Buffer, "Video Interrupts: %u counter: %d", CMD_interrupt_count, count++);
         strcpy((char *)VIDEO_MEMORY + 16, Buffer);
     }
     return 0;

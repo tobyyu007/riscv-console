@@ -125,16 +125,14 @@ int main()
                 if(checkInterruptTrigger(CMDInterrupt)){
                     pauseObjectID = createObject(LARGE_SPRITE, FULLY_OPAQUE, xPosMax / 2 - LARGE_SPRITE_SIZE / 2, yPosMax / 2 - LARGE_SPRITE_SIZE / 2, 0, pauseCanvasID);
                     CMDCount += 1;
-                    // enableInterrupt(VideoInterrupt);
-                    INTERRUPT_ENABLE_REGISTER |= (1 << VIE_BIT);
-                    // displayMode(TEXT_MODE);
-                    while(checkInterruptTrigger(CMDInterrupt) == false){
-                        CMDCount++;
-                        INTERRUPT_ENABLE_REGISTER &= (0 << VIE_BIT);
-                        freeObject(LARGE_SPRITE, pauseObjectID);
+                    enableInterrupt(VideoInterrupt);
+                    while(INTERRUPT_PENDING_REGISTER & (1 << VIE_BIT)){
+                        if(checkInterruptTrigger(CMDInterrupt)){
+                            INTERRUPT_PENDING_REGISTER = (1 << VIE_BIT);
+                        }
                     }
-                    // INTERRUPT_PENDING_REGISTER |= (1 << VIE_BIT);
-                    // INTERRUPT_ENABLE_REGISTER &= (0 << VIE_BIT);
+
+                    // 下面兩個沒有效果
                     controlObject(LARGE_SPRITE, FULLY_TRANSPARENT, xPosMax / 2 - LARGE_SPRITE_SIZE / 2, yPosMax / 2 - LARGE_SPRITE_SIZE / 2, 0, pauseCanvasID, pauseObjectID);
                     freeObject(LARGE_SPRITE, pauseObjectID);
                 }
