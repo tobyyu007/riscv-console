@@ -90,7 +90,6 @@ int main()
     uint32_t player1BatObjectID = createObject(LARGE_SPRITE, FULLY_OPAQUE, player1X, player1Y, 0, batCanvasID);
     uint32_t player2BatObjectID = createObject(LARGE_SPRITE, FULLY_OPAQUE, player2X, player2Y, 0, batCanvasID);
     uint32_t ballObjectID = createObject(SMALL_SPRITE, FULLY_OPAQUE, pingPongX, pingPongY, 0, ballCanvasID);
-    // uint32_t pauseObjectID = createObject(LARGE_SPRITE, FULLY_TRANSPARENT, xPosMax / 2 - LARGE_SPRITE_SIZE / 2, yPosMax / 2 - LARGE_SPRITE_SIZE / 2, 0, pauseCanvasID);  // 這個沒有作用
     uint32_t pauseObjectID = 0;
 
 
@@ -126,9 +125,6 @@ int main()
                             disableInterrupt(VideoInterrupt);
                         }
                     }
-
-                    // 下面兩個沒有效果
-                    controlObject(LARGE_SPRITE, 3, xPosMax / 2 - LARGE_SPRITE_SIZE / 2, yPosMax / 2 - LARGE_SPRITE_SIZE / 2, 0, pauseCanvasID, pauseObjectID);
                     freeObject(LARGE_SPRITE, pauseObjectID);
                 }
 
