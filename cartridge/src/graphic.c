@@ -46,6 +46,21 @@ int freeCanvas(SpriteSize size, int canvasId){
     return sucessFree;
 }
 
+int createBackgroundCanvas(BackgroundType type, uint8_t* buffer, uint32_t bufferSize){
+    int backgroundId = CreateBackgroundCanvas(type, buffer, bufferSize);
+    return backgroundId;
+}
+
+int createBackgroundTileEntry(int tileIndex, int entryIndex, uint8_t* buffer, uint32_t bufferSize){
+    int sucessCreate = CreateBackgroundTileEntry(tileIndex, entryIndex, buffer, bufferSize);
+    return sucessCreate;
+}
+
+int freeBackgroundCanvas(BackgroundType type, int backgroundIndex){
+    int sucessFree = FreeBackgroundCanvas(type, backgroundIndex);
+    return sucessFree;
+}
+
 void displayMode(DisplayMode mode){
     if(mode == GRAPHICS_MODE){
         ChangeMode(1);
