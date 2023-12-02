@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include "ManageSprite.h"
 #include "ControlSprite.h"
+#include "Background.h"
 #include <stdbool.h>
 
 #define MTIME_LOW       (*((volatile uint32_t *)0x40000008))
@@ -253,6 +254,18 @@ uint32_t c_system_call(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg
     else if(60 == call){
         MODE_REGISTER = arg0; // 0: text mode/ 1: graphic mode
         return 1;
+    }
+    else if(70 == call){
+        int result = createBackgroundCanvas(arg0,(const uint8_t *)(uintptr_t)arg1, arg2);
+        return result;
+    }
+    else if(71 == call){
+        int result = freeBackgroundCanvas(arg0, arg1);
+        return result;
+    }
+    else if(72 == call){
+        int result = createBackgroundTileEntry(arg0, arg1, (const uint8_t *)(uintptr_t)arg2, arg3);
+        return result;
     }
     else if(100 == call){ // TestSendPointer
         uintptr_t address = arg0;

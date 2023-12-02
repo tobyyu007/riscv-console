@@ -1,5 +1,5 @@
 .section .text, "ax"
-.global _interrupt_handler, GetTicks, GetController, InitThread, SwitchThread, ChangeMode, CreateControlSprite, FreeControlSprite, ControlSprite, CreateSprite, FreeSprite, TestSendPointer, checkControllerStatus, DirectionPadLeft, DirectionPadUp, DirectionPadDown, DirectionPadRight, ToggleButtonsUp, ToggleButtonsRight, ToggleButtonsLeft, ToggleButtonsDown, EnableCMDInterrupt, CMDInterrupted, DisableCMDInterrupt, StartTimer, EndTimer, TimeElpased, ResetTimer, GetCurrentTime, ClearTextData, ShowTextToLine, EnableVideoInterrupt, VideoInterrupted, DisableVideoInterrupt, ClearCMDInterrupt, ClearVideoInterrupt
+.global _interrupt_handler, GetTicks, GetController, InitThread, SwitchThread, ChangeMode, CreateControlSprite, FreeControlSprite, ControlSprite, CreateSprite, FreeSprite, TestSendPointer, checkControllerStatus, DirectionPadLeft, DirectionPadUp, DirectionPadDown, DirectionPadRight, ToggleButtonsUp, ToggleButtonsRight, ToggleButtonsLeft, ToggleButtonsDown, EnableCMDInterrupt, CMDInterrupted, DisableCMDInterrupt, StartTimer, EndTimer, TimeElpased, ResetTimer, GetCurrentTime, ClearTextData, ShowTextToLine, CreateBackgroundCanvas, FreeBackgroundCanvas, CreateBackgroundTileEntry, EnableVideoInterrupt, VideoInterrupted, DisableVideoInterrupt, ClearCMDInterrupt, ClearVideoInterrupt
 
 _interrupt_handler:
     addi	sp,sp,-40
@@ -128,6 +128,15 @@ ShowTextToLine:
     ecall
 ChangeMode:
     li a5, 60
+    ecall
+CreateBackgroundCanvas:
+    li a5, 70
+    ecall
+FreeBackgroundCanvas:
+    li a5, 71
+    ecall
+CreateBackgroundTileEntry:
+    li a5, 72
     ecall
 TestSendPointer:
     li a5, 100

@@ -20,6 +20,14 @@ uint8_t batCanvas[LARGE_SPRITE_SIZE * LARGE_SPRITE_SIZE];
 uint8_t ballCanvas[SMALL_SPRITE_SIZE * SMALL_SPRITE_SIZE];
 uint8_t pauseCanvas[LARGE_SPRITE_SIZE * LARGE_SPRITE_SIZE];
 
+// Background Canvas
+uint8_t backgroundPixel[BACKGROUND_PIXEL_SIZE];
+uint8_t backgroundTile[BACKGROUND_TILE_SIZE];
+uint8_t backgroundTileEntry0[TILE_ENTRY_SIZE];
+uint8_t backgroundTileEntry1[TILE_ENTRY_SIZE];
+uint8_t backgroundTileEntry2[TILE_ENTRY_SIZE];
+
+
 // Screen Resolution
 int xPosMax = 0;
 int yPosMax = 0;
@@ -61,6 +69,9 @@ void clearTextData();
 void showTextToLine(const char* text, int line);
 void initGame();
 
+// Background Control (SHOULD BE IN FIRMWARE)
+volatile uint32_t *BACKGROUND_CONTROL = (volatile uint32_t *)(0x500F5A00);
+uint32_t BackgroundControl(uint8_t palette, int16_t x, int16_t y, uint8_t z, uint8_t index, uint8_t mode);
 
 int main()
 {
@@ -81,10 +92,22 @@ int main()
 
     // fill in Canvas bufffer
     fillCanvas();
+
+    // create background canvas
+    uint32_t backgroundPixelCanvas0 = createBackgroundCanvas(BACKGROUND_PIXEL, backgroundPixel, BACKGROUND_PIXEL_SIZE);
+    uint32_t backgroundSubimageCanvas0 = createBackgroundCanvas(BACKGROUND_TILE, backgroundTile, BACKGROUND_TILE_SIZE);
+    uint32_t entry0 = createBackgroundTileEntry(backgroundSubimageCanvas0, 0, backgroundTileEntry0, TILE_ENTRY_SIZE);
+    uint32_t entry1 = createBackgroundTileEntry(backgroundSubimageCanvas0, 1, backgroundTileEntry1, TILE_ENTRY_SIZE);
+    uint32_t entry2 = createBackgroundTileEntry(backgroundSubimageCanvas0, 2, backgroundTileEntry2, TILE_ENTRY_SIZE);
     // create canvas
     uint32_t batCanvasID = createCanvas(LARGE_SPRITE, batCanvas, LARGE_SPRITE_SIZE * LARGE_SPRITE_SIZE);
     uint32_t ballCanvasID = createCanvas(SMALL_SPRITE, ballCanvas, SMALL_SPRITE_SIZE * SMALL_SPRITE_SIZE);
     uint32_t pauseCanvasID = createCanvas(LARGE_SPRITE, pauseCanvas, LARGE_SPRITE_SIZE * LARGE_SPRITE_SIZE);
+
+    
+    
+    // create background object (SHOULD BE IN FIRMWARE)
+    BACKGROUND_CONTROL[0] = BackgroundControl(0, 0, 0, 0, backgroundSubimageCanvas0, BACKGROUND_TILE);
 
     // create object
     uint32_t player1BatObjectID = createObject(LARGE_SPRITE, FULLY_OPAQUE, player1X, player1Y, 0, batCanvasID);
@@ -92,6 +115,8 @@ int main()
     uint32_t ballObjectID = createObject(SMALL_SPRITE, FULLY_OPAQUE, pingPongX, pingPongY, 0, ballCanvasID);
     uint32_t pauseObjectID = 0;
 
+    bool start = false;
+    char *Buffer = AllocateMemory(32);
 
     while (1)
     {
@@ -299,6 +324,36 @@ void fillCanvas()
             if ((x >= rect1XStart && x < rect1XStart + rectWidth && y >= centerY - rectHeight / 2 && y < centerY + rectHeight / 2) ||
                 (x >= rect2XStart && x < rect2XStart + rectWidth && y >= centerY - rectHeight / 2 && y < centerY + rectHeight / 2)) {
                 pauseCanvas[y * LARGE_SPRITE_SIZE + x] = YELLOW; // Inside the rectangle
+    
+    // Draw background
+    for(int y = 0; y < BACKGROUND_PIXEL_HEIGHT; y++){
+        for(int x = 0; x < BACKGROUND_PIXEL_WIDTH; x++){
+            if(y%2==0){
+                if(x%2==0) backgroundPixel[y * BACKGROUND_PIXEL_WIDTH + x] = 25;
+                else backgroundPixel[y * BACKGROUND_PIXEL_WIDTH + x] = 2;
+            }
+            else{
+                if(x%2==1) backgroundPixel[y * BACKGROUND_PIXEL_WIDTH + x] = 25;
+                else backgroundPixel[y * BACKGROUND_PIXEL_WIDTH + x] = 2;
+            }
+            
+        }
+    }
+    for(int y = 0; y < TILE_ENTRY_HEIGHT; y++){
+        for(int x = 0; x < TILE_ENTRY_WIDTH; x++){
+
+            backgroundTileEntry0[y*TILE_ENTRY_WIDTH+x] = 1;
+            backgroundTileEntry1[y*TILE_ENTRY_WIDTH+x] = 7;
+            backgroundTileEntry2[y*TILE_ENTRY_WIDTH+x] = 25;
+        }
+    }
+    for(int y = 0; y < BACKGROUND_TILE_HEIGHT; y++){
+        for(int x = 0; x < BACKGROUND_TILE_WIDTH; x++){
+            if(y%2==0){
+                if(x%2==0) backgroundTile[y*BACKGROUND_TILE_WIDTH+x] = 2;
+            }
+            else{
+                if(x%2==1) backgroundTile[y*BACKGROUND_TILE_WIDTH+x] = 2;
             }
         }
     }
@@ -436,4 +491,8 @@ void initGame(){
 
     // Reset game timer
     resetTimer();
+}
+
+uint32_t BackgroundControl(uint8_t palette, int16_t x, int16_t y, uint8_t z, uint8_t index, uint8_t mode) {
+    return (((uint32_t)mode & 0x1) << 31) | (((uint32_t)index) << 28) | (((uint32_t)z) << 25) | (((uint32_t)(y + 288) & 0x1FF) << 12) | (((uint32_t)(x + 512) & 0x3FF) << 2) | (palette & 0x3);
 }

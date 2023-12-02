@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include "ManageSprite.h"
 #include "ControlSprite.h"
+#include "Background.h"
 #include "colors.h"
 
 volatile int global = 42;
@@ -15,8 +16,14 @@ extern volatile uint32_t video_interrupt_count;
 extern volatile uint32_t CMD_interrupt_count;
 volatile uint32_t *GRAPHICS_MODE = (volatile uint32_t *)(0x500F6780);
 
+
 void initSpriteSystem(void);
 void initializePalette(void);
+void initBackgroundSystem(void);
+
+int createBackgroundCanvas(BackgroundType type, const uint8_t *buffer, size_t bufferSize);
+int createBackgroundTileEntry(int tileIndex, int entryIndex, const uint8_t *buffer, size_t bufferSize);
+
 
 int count = 0;
 
@@ -29,10 +36,14 @@ int main() {
     strcpy(Buffer, "OS Started");
     strcpy((char *)VIDEO_MEMORY, Buffer);
 
+    initBackgroundSystem();
     initializePalette();
     initSpriteSystem();
     initSpriteControlSystem();
+
+
     *GRAPHICS_MODE = 0; // 0: text mode/ 1: graphic mode 
+
     while (1) {
         if(*CartridgeStatus & 0x1){
             FunctionPtr Fun = (FunctionPtr)((*CartridgeStatus) & 0xFFFFFFFC);
