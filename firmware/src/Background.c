@@ -1,4 +1,4 @@
-#include "background.h"
+#include "Background.h"
 
 uint8_t backgroundPixelBitmap[64 / 8]; // The length of the bitmap should not be under 1 byte
 uint8_t backgroundTileBitmap[64 / 8];

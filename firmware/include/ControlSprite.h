@@ -22,9 +22,9 @@
 #define SMALL_SPRITE_CONTROL_BASE  0x500F6300
 
 // Bitmaps for tracking sprite usage
-extern uint32_t largeSpriteControlBitmap[NUM_LARGE_CONTROLS / 32];    // Each element is 32 bits
-extern uint32_t mediumSpriteControlBitmap[NUM_MEDIUM_CONTROLS / 32];  // Each element is 32 bits
-extern uint32_t smallSpriteControlBitmap[NUM_SMALL_CONTROLS / 32];    // Each element is 32 bits
+extern uint8_t largeSpriteControlBitmap[NUM_LARGE_CONTROLS / 8];
+extern uint8_t mediumSpriteControlBitmap[NUM_MEDIUM_CONTROLS / 8];
+extern uint8_t smallSpriteControlBitmap[NUM_SMALL_CONTROLS / 8];
 
 void initSpriteControlSystem(void);
 int createControlSprite(SpriteSize size, uint32_t spriteControl);

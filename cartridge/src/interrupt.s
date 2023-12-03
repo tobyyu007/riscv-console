@@ -1,5 +1,5 @@
 .section .text, "ax"
-.global _interrupt_handler, GetTicks, GetController, InitThread, SwitchThread, ChangeMode, CreateControlSprite, FreeControlSprite, ControlSprite, CreateSprite, FreeSprite, TestSendPointer, checkControllerStatus, DirectionPadLeft, DirectionPadUp, DirectionPadDown, DirectionPadRight, ToggleButtonsUp, ToggleButtonsRight, ToggleButtonsLeft, ToggleButtonsDown, EnableCMDInterrupt, CMDInterrupted, DisableCMDInterrupt, StartTimer, EndTimer, TimeElpased, ResetTimer, GetCurrentTime, ClearTextData, ShowTextToLine, CreateBackgroundCanvas, FreeBackgroundCanvas, CreateBackgroundTileEntry
+.global _interrupt_handler, GetTicks, GetController, InitThread, SwitchThread, ChangeMode, CreateControlSprite, FreeControlSprite, ControlSprite, CreateSprite, FreeSprite, TestSendPointer, checkControllerStatus, DirectionPadLeft, DirectionPadUp, DirectionPadDown, DirectionPadRight, ToggleButtonsUp, ToggleButtonsRight, ToggleButtonsLeft, ToggleButtonsDown, EnableCMDInterrupt, CMDInterrupted, DisableCMDInterrupt, StartTimer, EndTimer, TimeElpased, ResetTimer, GetCurrentTime, ClearTextData, ShowTextToLine, CreateBackgroundCanvas, FreeBackgroundCanvas, CreateBackgroundTileEntry, CreateBackgroundObject, FreeBackgroundObject, ControlBackgroundObject
 
 _interrupt_handler:
     addi	sp,sp,-40
@@ -122,6 +122,15 @@ FreeBackgroundCanvas:
     ecall
 CreateBackgroundTileEntry:
     li a5, 72
+    ecall
+CreateBackgroundObject:
+    li a5, 80
+    ecall
+FreeBackgroundObject:
+    li a5, 81
+    ecall
+ControlBackgroundObject:
+    li a5, 82
     ecall
 TestSendPointer:
     li a5, 100
