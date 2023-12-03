@@ -9,19 +9,19 @@
 #include "memory.h"
 #include "timer.h"
 
-#define INTERRUPT_ENABLE_REGISTER (*((volatile uint32_t *)0x40000000))
-#define INTERRUPT_PENDING_REGISTER (*((volatile uint32_t *)0x40000004))
-#define MODE_REGISTER (*((volatile uint32_t *)0x500F6780))
-#define VIE_BIT 1
-#define CMIE_BIT 2
 
 // Canvas
 uint8_t batCanvas[LARGE_SPRITE_SIZE * LARGE_SPRITE_SIZE];
 uint8_t ballCanvas[SMALL_SPRITE_SIZE * SMALL_SPRITE_SIZE];
 uint8_t pauseCanvas[LARGE_SPRITE_SIZE * LARGE_SPRITE_SIZE];
 
+uint8_t batBackgroundCanvas[LARGE_SPRITE_SIZE * LARGE_SPRITE_SIZE];
+uint8_t ballBackgroundCanvas[SMALL_SPRITE_SIZE * SMALL_SPRITE_SIZE];
+uint8_t pauseBackgroundCanvas[LARGE_SPRITE_SIZE * LARGE_SPRITE_SIZE];
+
 // Background Canvas
-uint8_t backgroundPixel[BACKGROUND_PIXEL_SIZE];
+uint8_t normalBackgroundCanvas[BACKGROUND_PIXEL_SIZE];
+uint8_t halfTimeBackgroundCanvas[BACKGROUND_PIXEL_SIZE];
 uint8_t backgroundTile[BACKGROUND_TILE_SIZE];
 uint8_t backgroundTileEntry0[TILE_ENTRY_SIZE];
 uint8_t backgroundTileEntry1[TILE_ENTRY_SIZE];
@@ -77,7 +77,13 @@ volatile uint32_t *BACKGROUND_CONTROL = (volatile uint32_t *)(0x500F5A00);
 uint32_t BackgroundControl(uint8_t palette, int16_t x, int16_t y, uint8_t z, uint8_t index, uint8_t mode);
 
 int main()
-{
+{   
+    volatile uint32_t *LARGE_PALETTE_0 = (volatile uint32_t *)(0x500F1000);
+    LARGE_PALETTE_0[1] = 0x00000000;
+    volatile uint32_t *SMALL_PALETTE_0 = (volatile uint32_t *)(0x500F3000);
+    SMALL_PALETTE_0[1] = 0x00000000;
+
+
     int countdown = 1;
     global = getCurrentTick();
     bool gameStart = false;
@@ -101,23 +107,26 @@ int main()
     uint32_t ballCanvasID = createCanvas(SMALL_SPRITE, ballCanvas, SMALL_SPRITE_SIZE * SMALL_SPRITE_SIZE);
     uint32_t pauseCanvasID = createCanvas(LARGE_SPRITE, pauseCanvas, LARGE_SPRITE_SIZE * LARGE_SPRITE_SIZE);
 
+    uint32_t batCanvasBackgroundID = createCanvas(LARGE_SPRITE, batCanvas, LARGE_SPRITE_SIZE * LARGE_SPRITE_SIZE);
+    uint32_t ballCanvasBackgroundID = createCanvas(SMALL_SPRITE, ballCanvas, SMALL_SPRITE_SIZE * SMALL_SPRITE_SIZE);
+    uint32_t pauseCanvasBackgroundID = createCanvas(LARGE_SPRITE, pauseCanvas, LARGE_SPRITE_SIZE * LARGE_SPRITE_SIZE);
+
     // create background canvas
-    uint32_t backgroundPixelCanvas0 = createBackgroundCanvas(BACKGROUND_PIXEL, backgroundPixel, BACKGROUND_PIXEL_SIZE);
+    uint32_t normalBackgroundCanvasID = createBackgroundCanvas(BACKGROUND_PIXEL, normalBackgroundCanvas, BACKGROUND_PIXEL_SIZE);
+    uint32_t halfTimeBackgroundCanvasID = createBackgroundCanvas(BACKGROUND_PIXEL, halfTimeBackgroundCanvas, BACKGROUND_PIXEL_SIZE);
     // uint32_t backgroundSubimageCanvas0 = createBackgroundCanvas(BACKGROUND_TILE, backgroundTile, BACKGROUND_TILE_SIZE);
     // uint32_t entry0 = createBackgroundTileEntry(backgroundSubimageCanvas0, 0, backgroundTileEntry0, TILE_ENTRY_SIZE);
     // uint32_t entry1 = createBackgroundTileEntry(backgroundSubimageCanvas0, 1, backgroundTileEntry1, TILE_ENTRY_SIZE);
     // uint32_t entry2 = createBackgroundTileEntry(backgroundSubimageCanvas0, 2, backgroundTileEntry2, TILE_ENTRY_SIZE);
 
     // create background object (SHOULD BE IN FIRMWARE)
-    // BACKGROUND_CONTROL[0] = BackgroundControl(0, 0, 0, 0, backgroundPixelCanvas0, BACKGROUND_PIXEL);
+    BACKGROUND_CONTROL[0] = BackgroundControl(0, 0, 0, 0, halfTimeBackgroundCanvasID, BACKGROUND_PIXEL);
 
     // create object
     uint32_t player1BatObjectID = createObject(LARGE_SPRITE, FULLY_OPAQUE, player1X, player1Y, 0, batCanvasID);
     uint32_t player2BatObjectID = createObject(LARGE_SPRITE, FULLY_OPAQUE, player2X, player2Y, 0, batCanvasID);
     uint32_t ballObjectID = createObject(SMALL_SPRITE, FULLY_OPAQUE, pingPongX, pingPongY, 0, ballCanvasID);
     uint32_t pauseObjectID = 0;
-
-    bool start = false;
 
     while (1)
     {
@@ -173,7 +182,7 @@ int main()
 
                 if (timeElapsed() >= timeLimit / 2 && !halfTime)
                 {
-                    BACKGROUND_CONTROL[0] = BackgroundControl(0, 0, 0, 0, backgroundPixelCanvas0, BACKGROUND_PIXEL);
+                    BACKGROUND_CONTROL[0] = BackgroundControl(0, 0, 0, 0, halfTimeBackgroundCanvasID, BACKGROUND_PIXEL);
                     halfTime = true;
                 }
 
@@ -265,6 +274,7 @@ int main()
                         {
                             // Re-Initialize game
                             initGame();
+                            // BACKGROUND_CONTROL[0] = BackgroundControl(0, 0, 0, 0, normalBackgroundCanvasID, BACKGROUND_PIXEL);
                             startTimer();
                             displayMode(GRAPHICS_MODE);
                             clearInterruptTrigger(VideoInterrupt);
@@ -294,6 +304,12 @@ int main()
 void fillCanvas()
 {
     // Fill out bat canvas (large canvas)
+    for(int y = 0; y < LARGE_SPRITE_SIZE; y++){  // background
+        for(int x = 0; x < LARGE_SPRITE_SIZE; x++){
+            batCanvas[y*LARGE_SPRITE_SIZE+x] = 1;
+        }
+    }
+
     for (int y = 0; y < rectangleHeight; y++) // Iterate over the height of the rectangle
     {
         for (int x = 0; x < rectangleWidth; x++) // Iterate over the width of the rectangle
@@ -320,7 +336,7 @@ void fillCanvas()
             }
             else
             {
-                ballCanvas[y * SMALL_SPRITE_SIZE + x] = 0;
+                ballCanvas[y * SMALL_SPRITE_SIZE + x] = 1;
             }
         }
     }
@@ -349,18 +365,18 @@ void fillCanvas()
             // Drawing the thin outer ring of the circle
             if (distanceSquared >= radiusSquared - thicknessSquared && distanceSquared <= radiusSquared + thicknessSquared)
             {
-                pauseCanvas[y * LARGE_SPRITE_SIZE + x] = RED_VIOLET;
+                pauseCanvas[y * LARGE_SPRITE_SIZE + x] = YELLOW;
             }
             else
             {
-                pauseCanvas[y * LARGE_SPRITE_SIZE + x] = 0; // Transparent or background color
+                pauseCanvas[y * LARGE_SPRITE_SIZE + x] = 1; // Transparent or background color
             }
 
             // Drawing the rectangles inside the circle
             if ((x >= rect1XStart && x < rect1XStart + rectWidth && y >= centerY - rectHeight / 2 && y < centerY + rectHeight / 2) ||
                 (x >= rect2XStart && x < rect2XStart + rectWidth && y >= centerY - rectHeight / 2 && y < centerY + rectHeight / 2))
             {
-                pauseCanvas[y * LARGE_SPRITE_SIZE + x] = RED_VIOLET; // Inside the rectangle
+                pauseCanvas[y * LARGE_SPRITE_SIZE + x] = YELLOW; // Inside the rectangle
             }
         }
     }
@@ -370,7 +386,14 @@ void fillCanvas()
     {
         for (int x = 0; x < BACKGROUND_PIXEL_WIDTH; x++)
         {
-            backgroundPixel[y * BACKGROUND_PIXEL_WIDTH + x] = COBALT_BLUE;
+            normalBackgroundCanvas[y * BACKGROUND_PIXEL_WIDTH + x] = BLACK;
+        }
+    }
+    for (int y = 0; y < BACKGROUND_PIXEL_HEIGHT; y++)
+    {
+        for (int x = 0; x < BACKGROUND_PIXEL_WIDTH; x++)
+        {
+            halfTimeBackgroundCanvas[y * BACKGROUND_PIXEL_WIDTH + x] = PLUM;
         }
     }
     // for(int y = 0; y < TILE_ENTRY_HEIGHT; y++){
