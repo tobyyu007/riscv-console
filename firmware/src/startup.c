@@ -186,7 +186,6 @@ uint32_t c_system_call(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg
     }
     else if(17 == call){  // timer.h - StartTimer()
         timerStart = global;
-        timerEnd = 0;
         return 1;
     }
     else if(18 == call){  // timer.h - StopTimer()
@@ -194,6 +193,12 @@ uint32_t c_system_call(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg
         return 1;
     }
     else if(19 == call){  // timer.h - TimeElpased()
+        // if (timerEnd == 0){
+        //     return global-timerStart;
+        // }
+        // else{
+        //     return timerEnd-timerStart;
+        // }
         return timerEnd-timerStart;
     }
     else if(20 == call){  // timer.h - ResetTimer()

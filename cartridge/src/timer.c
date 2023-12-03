@@ -1,23 +1,32 @@
 #include "timer.h"
 
+int timerStart = 0;
+int timerEnd = 0;
+
 void startTimer()
 {
-    StartTimer();
+    timerStart = GetTicks();
 }
 
 void endTimer()
 {
-    EndTimer();
+    timerEnd = GetTicks();
 }
 
 uint32_t timeElapsed()
 {
-    return TimeElpased();
+    if (timerEnd == 0) {
+        return (GetTicks()-timerStart);
+    }
+    else{
+        return (timerEnd-timerStart);
+    }
 }
 
 void resetTimer()
 {
-    ResetTimer();
+    timerStart = 0;
+    timerEnd = 0;
 }
 
 uint32_t getCurrentTime()

@@ -8,6 +8,7 @@ uint32_t EndTimer(void);
 uint32_t TimeElpased(void);
 uint32_t ResetTimer(void);
 uint32_t GetCurrentTime(void);
+uint32_t GetTicks(void);
 
 /**
  * @brief Starts the timer.
