@@ -29,7 +29,6 @@ void resetTimer()
     timerEnd = 0;
 }
 
-uint32_t getCurrentTime()
-{
-    return GetCurrentTime();
+uint32_t getCurrentTick(){
+    return GetTicks();
 }

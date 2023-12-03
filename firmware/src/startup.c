@@ -184,31 +184,6 @@ uint32_t c_system_call(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg
         INTERRUPT_ENABLE_REGISTER &= (0 << CMIE_BIT);
         return 1;
     }
-    else if(17 == call){  // timer.h - StartTimer()
-        timerStart = global;
-        return 1;
-    }
-    else if(18 == call){  // timer.h - StopTimer()
-        timerEnd = global;
-        return 1;
-    }
-    else if(19 == call){  // timer.h - TimeElpased()
-        // if (timerEnd == 0){
-        //     return global-timerStart;
-        // }
-        // else{
-        //     return timerEnd-timerStart;
-        // }
-        return timerEnd-timerStart;
-    }
-    else if(20 == call){  // timer.h - ResetTimer()
-        timerStart = 0;
-        timerEnd = 0;
-        return 1;
-    }
-    else if(21 == call){  // timer.h - GetCurrentTime()
-        return global;
-    }
     else if(22 == call){  // event.h - EnableVideoInterrupt()
         INTERRUPT_ENABLE_REGISTER &= (0 << VIE_BIT);
         return 1;

@@ -79,7 +79,7 @@ uint32_t BackgroundControl(uint8_t palette, int16_t x, int16_t y, uint8_t z, uin
 int main()
 {
     int countdown = 1;
-    global = GetTicks();
+    global = getCurrentTick();
     bool gameStart = false;
     enableInterrupt(CMDInterrupt);
 
@@ -518,7 +518,7 @@ void initGame()
     pingPongY = yPosMax / 2 - ballRadius / 2;
 
     // Set random speed for the ball
-    global = GetTicks();
+    global = getCurrentTick();
     srand(global);
     ballSpeedX = minSpeedX + (rand() / (float)RAND_MAX) * (maxSpeedX - minSpeedX);
     if (rand() % 2 == 0) {

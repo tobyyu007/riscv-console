@@ -1,5 +1,5 @@
 .section .text, "ax"
-.global _interrupt_handler, GetTicks, GetController, InitThread, SwitchThread, ChangeMode, CreateControlSprite, FreeControlSprite, ControlSprite, CreateSprite, FreeSprite, TestSendPointer, checkControllerStatus, DirectionPadLeft, DirectionPadUp, DirectionPadDown, DirectionPadRight, ToggleButtonsUp, ToggleButtonsRight, ToggleButtonsLeft, ToggleButtonsDown, EnableCMDInterrupt, CMDInterrupted, DisableCMDInterrupt, StartTimer, EndTimer, TimeElpased, ResetTimer, GetCurrentTime, ClearTextData, ShowTextToLine, CreateBackgroundCanvas, FreeBackgroundCanvas, CreateBackgroundTileEntry, EnableVideoInterrupt, VideoInterrupted, DisableVideoInterrupt, ClearCMDInterrupt, ClearVideoInterrupt
+.global _interrupt_handler, GetTicks, GetController, InitThread, SwitchThread, ChangeMode, CreateControlSprite, FreeControlSprite, ControlSprite, CreateSprite, FreeSprite, TestSendPointer, checkControllerStatus, DirectionPadLeft, DirectionPadUp, DirectionPadDown, DirectionPadRight, ToggleButtonsUp, ToggleButtonsRight, ToggleButtonsLeft, ToggleButtonsDown, EnableCMDInterrupt, CMDInterrupted, DisableCMDInterrupt, ClearTextData, ShowTextToLine, CreateBackgroundCanvas, FreeBackgroundCanvas, CreateBackgroundTileEntry, EnableVideoInterrupt, VideoInterrupted, DisableVideoInterrupt, ClearCMDInterrupt, ClearVideoInterrupt
 
 _interrupt_handler:
     addi	sp,sp,-40
@@ -74,21 +74,6 @@ CMDInterrupted:
     ecall
 DisableCMDInterrupt:
     li a5, 16
-    ecall
-StartTimer:
-    li a5, 17
-    ecall
-EndTimer:
-    li a5, 18
-    ecall
-TimeElpased:
-    li a5, 19
-    ecall
-ResetTimer:
-    li a5, 20
-    ecall
-GetCurrentTime:
-    li a5, 21
     ecall
 EnableVideoInterrupt:
     li a5, 22
