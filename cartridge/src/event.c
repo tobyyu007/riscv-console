@@ -77,7 +77,7 @@ void clearInterruptTrigger(InterruptType interruptType) {  // Clear interrupt
             break;
     }
 
-    return false;
+    // return false;
 }
 
 void disableInterrupt(InterruptType interruptType) {  // Disable interrupt

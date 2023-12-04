@@ -118,7 +118,7 @@ int main()
 
     // create background object
     uint32_t BackgroundObjectID = createBackgroundObject(BACKGROUND_PIXEL, FULLY_OPAQUE, 0, 0, 0, halfTimeBackgroundCanvasID);
-    controlBackgroundObject(BACKGROUND_TILE, FULLY_OPAQUE, 0, 0, 0, halfTimeBackgroundCanvasID, BackgroundObjectID);
+    controlBackgroundObject(BACKGROUND_PIXEL, FULLY_OPAQUE, 0, 0, 0, normalBackgroundCanvasID, BackgroundObjectID);
 
     while (1)
     {
@@ -176,7 +176,7 @@ int main()
 
                 if (timeElapsed() >= timeLimit / 2 && !halfTime)
                 {
-                    controlBackgroundObject(BACKGROUND_TILE, FULLY_OPAQUE, 0, 0, 0, halfTimeBackgroundCanvasID, BackgroundObjectID);
+                    controlBackgroundObject(BACKGROUND_PIXEL, FULLY_OPAQUE, 0, 0, 0, halfTimeBackgroundCanvasID, BackgroundObjectID);
                     halfTime = true;
                 }
 
@@ -268,7 +268,7 @@ int main()
                         {
                             // Re-Initialize game
                             initGame();
-                            controlBackgroundObject(BACKGROUND_TILE, FULLY_OPAQUE, 0, 0, 0, normalBackgroundCanvasID, BackgroundObjectID);
+                            controlBackgroundObject(BACKGROUND_PIXEL, FULLY_OPAQUE, 0, 0, 0, normalBackgroundCanvasID, BackgroundObjectID);
                             startTimer();
                             displayMode(GRAPHICS_MODE);
                             clearInterruptTrigger(VideoInterrupt);
