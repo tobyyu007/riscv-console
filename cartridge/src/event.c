@@ -66,7 +66,7 @@ bool checkInterruptTrigger(InterruptType interruptType) {  // Check if interrupt
 }
 
 
-bool clearInterruptTrigger(InterruptType interruptType) {  // Clear interrupt
+void clearInterruptTrigger(InterruptType interruptType) {  // Clear interrupt
     Interrupt interrupt = {interruptType};
     switch (interrupt.interruptType) {
         case VideoInterrupt:

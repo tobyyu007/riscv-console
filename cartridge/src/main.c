@@ -9,7 +9,6 @@
 #include "memory.h"
 #include "timer.h"
 
-
 // Canvas
 uint8_t batCanvas[LARGE_SPRITE_SIZE * LARGE_SPRITE_SIZE];
 uint8_t ballCanvas[SMALL_SPRITE_SIZE * SMALL_SPRITE_SIZE];
@@ -72,17 +71,13 @@ void clearTextData();
 void showTextToLine(const char *text, int line);
 void initGame();
 
-// Background Control (SHOULD BE IN FIRMWARE)
-volatile uint32_t *BACKGROUND_CONTROL = (volatile uint32_t *)(0x500F5A00);
-uint32_t BackgroundControl(uint8_t palette, int16_t x, int16_t y, uint8_t z, uint8_t index, uint8_t mode);
 
 int main()
-{   
+{
     volatile uint32_t *LARGE_PALETTE_0 = (volatile uint32_t *)(0x500F1000);
     LARGE_PALETTE_0[1] = 0x00000000;
     volatile uint32_t *SMALL_PALETTE_0 = (volatile uint32_t *)(0x500F3000);
     SMALL_PALETTE_0[1] = 0x00000000;
-
 
     int countdown = 1;
     global = getCurrentTick();
@@ -111,24 +106,19 @@ int main()
     uint32_t ballCanvasBackgroundID = createCanvas(SMALL_SPRITE, ballCanvas, SMALL_SPRITE_SIZE * SMALL_SPRITE_SIZE);
     uint32_t pauseCanvasBackgroundID = createCanvas(LARGE_SPRITE, pauseCanvas, LARGE_SPRITE_SIZE * LARGE_SPRITE_SIZE);
 
-    // create background canvas
-    uint32_t normalBackgroundCanvasID = createBackgroundCanvas(BACKGROUND_PIXEL, normalBackgroundCanvas, BACKGROUND_PIXEL_SIZE);
-    uint32_t halfTimeBackgroundCanvasID = createBackgroundCanvas(BACKGROUND_PIXEL, halfTimeBackgroundCanvas, BACKGROUND_PIXEL_SIZE);
-    // uint32_t backgroundSubimageCanvas0 = createBackgroundCanvas(BACKGROUND_TILE, backgroundTile, BACKGROUND_TILE_SIZE);
-    // uint32_t entry0 = createBackgroundTileEntry(backgroundSubimageCanvas0, 0, backgroundTileEntry0, TILE_ENTRY_SIZE);
-    // uint32_t entry1 = createBackgroundTileEntry(backgroundSubimageCanvas0, 1, backgroundTileEntry1, TILE_ENTRY_SIZE);
-    // uint32_t entry2 = createBackgroundTileEntry(backgroundSubimageCanvas0, 2, backgroundTileEntry2, TILE_ENTRY_SIZE);
-
-    // create background object (SHOULD BE IN FIRMWARE)
-    //BACKGROUND_CONTROL[0] = BackgroundControl(0, 0, 0, 0, backgroundSubimageCanvas0, BACKGROUND_TILE);
-    uint32_t BackgroundObjectID = createBackgroundObject(BACKGROUND_TILE, FULLY_OPAQUE, 0, 0, 0, backgroundSubimageCanvas0);
-    controlBackgroundObject(BACKGROUND_TILE,FULLY_OPAQUE, 0, 0, 0, backgroundSubimageCanvas0, BackgroundObjectID);
-    
     // create object
     uint32_t player1BatObjectID = createObject(LARGE_SPRITE, FULLY_OPAQUE, player1X, player1Y, 0, batCanvasID);
     uint32_t player2BatObjectID = createObject(LARGE_SPRITE, FULLY_OPAQUE, player2X, player2Y, 0, batCanvasID);
     uint32_t ballObjectID = createObject(SMALL_SPRITE, FULLY_OPAQUE, pingPongX, pingPongY, 0, ballCanvasID);
     uint32_t pauseObjectID = 0;
+
+    // create background canvas
+    uint32_t normalBackgroundCanvasID = createBackgroundCanvas(BACKGROUND_PIXEL, normalBackgroundCanvas, BACKGROUND_PIXEL_SIZE);
+    uint32_t halfTimeBackgroundCanvasID = createBackgroundCanvas(BACKGROUND_PIXEL, halfTimeBackgroundCanvas, BACKGROUND_PIXEL_SIZE);
+
+    // create background object
+    uint32_t BackgroundObjectID = createBackgroundObject(BACKGROUND_PIXEL, FULLY_OPAQUE, 0, 0, 0, halfTimeBackgroundCanvasID);
+    controlBackgroundObject(BACKGROUND_TILE, FULLY_OPAQUE, 0, 0, 0, halfTimeBackgroundCanvasID, BackgroundObjectID);
 
     while (1)
     {
@@ -139,7 +129,7 @@ int main()
                 // Before starting the game
 
                 // Instructions
-                sprintf(Buffer, "Welcome to Pong!");
+                sprintf(Buffer, "Welcome to Pong! %d %d", normalBackgroundCanvasID, halfTimeBackgroundCanvasID);
                 showTextToLine(Buffer, 2);
                 sprintf(Buffer, "Player 1: Use \"W\" and \"X\" to move up and down");
                 showTextToLine(Buffer, 16);
@@ -186,7 +176,7 @@ int main()
 
                 if (timeElapsed() >= timeLimit / 2 && !halfTime)
                 {
-                    BACKGROUND_CONTROL[0] = BackgroundControl(0, 0, 0, 0, halfTimeBackgroundCanvasID, BACKGROUND_PIXEL);
+                    controlBackgroundObject(BACKGROUND_TILE, FULLY_OPAQUE, 0, 0, 0, halfTimeBackgroundCanvasID, BackgroundObjectID);
                     halfTime = true;
                 }
 
@@ -278,7 +268,7 @@ int main()
                         {
                             // Re-Initialize game
                             initGame();
-                            // BACKGROUND_CONTROL[0] = BackgroundControl(0, 0, 0, 0, normalBackgroundCanvasID, BACKGROUND_PIXEL);
+                            controlBackgroundObject(BACKGROUND_TILE, FULLY_OPAQUE, 0, 0, 0, normalBackgroundCanvasID, BackgroundObjectID);
                             startTimer();
                             displayMode(GRAPHICS_MODE);
                             clearInterruptTrigger(VideoInterrupt);
@@ -307,19 +297,22 @@ int main()
 
 void fillCanvas()
 {
-    for (int y = 0; y < LARGE_SPRITE_SIZE; y++) { // Iterate over each row
-        for (int x = 0; x < LARGE_SPRITE_SIZE; x++) { // Iterate over each column
-            if (y < rectangleHeight && x < rectangleWidth) {
+    for (int y = 0; y < LARGE_SPRITE_SIZE; y++)
+    { // Iterate over each row
+        for (int x = 0; x < LARGE_SPRITE_SIZE; x++)
+        { // Iterate over each column
+            if (y < rectangleHeight && x < rectangleWidth)
+            {
                 // Inside the rectangle area
                 batCanvas[y * LARGE_SPRITE_SIZE + x] = WHITE;
-            } 
-            else {
+            }
+            else
+            {
                 // Outside the rectangle (background area)
                 batCanvas[y * LARGE_SPRITE_SIZE + x] = 1;
             }
         }
     }
-
 
     // Fill out circle data (small canvas)
     int centerX = 8; // X-coordinate of the center of the circle
@@ -547,16 +540,12 @@ void initGame()
     global = getCurrentTick();
     srand(global);
     ballSpeedX = minSpeedX + (rand() / (float)RAND_MAX) * (maxSpeedX - minSpeedX);
-    if (rand() % 2 == 0) {
+    if (rand() % 2 == 0)
+    {
         ballSpeedX = -ballSpeedX;
     }
     ballSpeedY = minSpeedY + (rand() / (float)RAND_MAX) * (maxSpeedY - minSpeedY);
 
     // Reset game timer
     resetTimer();
-}
-
-uint32_t BackgroundControl(uint8_t palette, int16_t x, int16_t y, uint8_t z, uint8_t index, uint8_t mode)
-{
-    return (((uint32_t)mode & 0x1) << 31) | (((uint32_t)index) << 29) | (((uint32_t)z) << 25) | (((uint32_t)(y + 288) & 0x1FF) << 12) | (((uint32_t)(x + 512) & 0x3FF) << 2) | (palette & 0x3);
 }

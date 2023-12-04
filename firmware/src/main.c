@@ -33,7 +33,7 @@ int main() {
     int last_global = 42;
     int x_pos = 12;
     char *Buffer = malloc(128);
-    strcpy(Buffer, "OS Started");
+    sprintf(Buffer, "Welcome to group 2's OS!");
     strcpy((char *)VIDEO_MEMORY, Buffer);
 
     initBackgroundSystem();
@@ -49,8 +49,8 @@ int main() {
             FunctionPtr Fun = (FunctionPtr)((*CartridgeStatus) & 0xFFFFFFFC);
             Fun();
         }
-        sprintf(Buffer, "Video Interrupts: %u counter: %d", CMD_interrupt_count, count++);
-        strcpy((char *)VIDEO_MEMORY + 16, Buffer);
+        // sprintf(Buffer, "Video Interrupts: %u counter: %d", CMD_interrupt_count, count++);
+        // strcpy((char *)VIDEO_MEMORY + 16, Buffer);
     }
     return 0;
 }

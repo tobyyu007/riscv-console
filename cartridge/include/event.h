@@ -95,9 +95,8 @@ bool checkInterruptTrigger(InterruptType interruptType);
  * This function clears the trigger for the specified interrupt type.
  *
  * @param interruptType The type of interrupt to clear the trigger for.
- * @return true if the trigger was successfully cleared, false otherwise.
  */
-bool clearInterruptTrigger(InterruptType interruptType);
+void clearInterruptTrigger(InterruptType interruptType);
 
 /**
  * Disables the specified interrupt type.
