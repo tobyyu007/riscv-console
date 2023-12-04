@@ -120,8 +120,10 @@ int main()
     // uint32_t entry2 = createBackgroundTileEntry(backgroundSubimageCanvas0, 2, backgroundTileEntry2, TILE_ENTRY_SIZE);
 
     // create background object (SHOULD BE IN FIRMWARE)
-    BACKGROUND_CONTROL[0] = BackgroundControl(0, 0, 0, 0, halfTimeBackgroundCanvasID, BACKGROUND_PIXEL);
-
+    //BACKGROUND_CONTROL[0] = BackgroundControl(0, 0, 0, 0, backgroundSubimageCanvas0, BACKGROUND_TILE);
+    uint32_t BackgroundObjectID = createBackgroundObject(BACKGROUND_TILE, FULLY_OPAQUE, 0, 0, 0, backgroundSubimageCanvas0);
+    controlBackgroundObject(BACKGROUND_TILE,FULLY_OPAQUE, 0, 0, 0, backgroundSubimageCanvas0, BackgroundObjectID);
+    
     // create object
     uint32_t player1BatObjectID = createObject(LARGE_SPRITE, FULLY_OPAQUE, player1X, player1Y, 0, batCanvasID);
     uint32_t player2BatObjectID = createObject(LARGE_SPRITE, FULLY_OPAQUE, player2X, player2Y, 0, batCanvasID);
