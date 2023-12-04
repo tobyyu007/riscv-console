@@ -146,9 +146,11 @@ int main()
                 sprintf(Buffer, "Press \"CMD\" to pause or resume the game");
                 showTextToLine(Buffer, 20);
                 sprintf(Buffer, "Press D and J together to start the game");
-                showTextToLine(Buffer, SCREEN_ROWS / 2 + 12);
+                showTextToLine(Buffer, SCREEN_ROWS / 2 + 10);
                 sprintf(Buffer, "Time limit: %d ticks", timeLimit);
-                showTextToLine(Buffer, SCREEN_ROWS / 2 + 14);
+                showTextToLine(Buffer, SCREEN_ROWS / 2 + 12);
+                sprintf(Buffer, "Background color changes at half the time limit");
+                showTextToLine(Buffer, SCREEN_ROWS / 2 + 13);
                 displayMode(TEXT_MODE);
 
                 if (checkDirectionTrigger(DirectionPad, DirectionRight) && checkDirectionTrigger(ToggleButtons, DirectionLeft))
@@ -260,7 +262,7 @@ int main()
                     }
 
                     endTimer();
-                    strcpy(Buffer, "Press D and J to restart");
+                    strcpy(Buffer, "Press D and J together to restart");
                     showTextToLine(Buffer, SCREEN_ROWS / 2 + 2);
                     sprintf(Buffer, "Playing Time: %d hundred ticks", timeElapsed() / 100);
                     showTextToLine(Buffer, SCREEN_ROWS / 2 + 4);
@@ -303,20 +305,19 @@ int main()
 
 void fillCanvas()
 {
-    // Fill out bat canvas (large canvas)
-    for(int y = 0; y < LARGE_SPRITE_SIZE; y++){  // background
-        for(int x = 0; x < LARGE_SPRITE_SIZE; x++){
-            batCanvas[y*LARGE_SPRITE_SIZE+x] = 1;
+    for (int y = 0; y < LARGE_SPRITE_SIZE; y++) { // Iterate over each row
+        for (int x = 0; x < LARGE_SPRITE_SIZE; x++) { // Iterate over each column
+            if (y < rectangleHeight && x < rectangleWidth) {
+                // Inside the rectangle area
+                batCanvas[y * LARGE_SPRITE_SIZE + x] = WHITE;
+            } 
+            else {
+                // Outside the rectangle (background area)
+                batCanvas[y * LARGE_SPRITE_SIZE + x] = 1;
+            }
         }
     }
 
-    for (int y = 0; y < rectangleHeight; y++) // Iterate over the height of the rectangle
-    {
-        for (int x = 0; x < rectangleWidth; x++) // Iterate over the width of the rectangle
-        {
-            batCanvas[y * LARGE_SPRITE_SIZE + x] = WHITE;
-        }
-    }
 
     // Fill out circle data (small canvas)
     int centerX = 8; // X-coordinate of the center of the circle
@@ -555,5 +556,5 @@ void initGame()
 
 uint32_t BackgroundControl(uint8_t palette, int16_t x, int16_t y, uint8_t z, uint8_t index, uint8_t mode)
 {
-    return (((uint32_t)mode & 0x1) << 31) | (((uint32_t)index) << 28) | (((uint32_t)z) << 25) | (((uint32_t)(y + 288) & 0x1FF) << 12) | (((uint32_t)(x + 512) & 0x3FF) << 2) | (palette & 0x3);
+    return (((uint32_t)mode & 0x1) << 31) | (((uint32_t)index) << 29) | (((uint32_t)z) << 25) | (((uint32_t)(y + 288) & 0x1FF) << 12) | (((uint32_t)(x + 512) & 0x3FF) << 2) | (palette & 0x3);
 }
