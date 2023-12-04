@@ -17,7 +17,7 @@ void initSpriteControlSystem(void) {
     memset(smallSpriteControlBitmap, 0, sizeof(smallSpriteControlBitmap));
 }
 
-int createControlSprite(SpriteSize size, uint32_t canvasId) {// canvasId need or not?
+int createControlSprite(SpriteSize size, uint32_t spriteControl) {// canvasId need or not?
     uint8_t *bitmap;
     size_t bitmapSize;
     size_t spriteSize;
@@ -52,7 +52,7 @@ int createControlSprite(SpriteSize size, uint32_t canvasId) {// canvasId need or
     }
 
     // Copy the uint32_t spriteControl to the spriteBase
-    spriteBase[index] = canvasId;
+    spriteBase[index] = spriteControl;
 
     setBitmap(bitmap, index);
 
@@ -130,7 +130,7 @@ int freeControlSprite(SpriteSize size, int objectId) {
 // Finds the first free sprite slot in the bitmap
 static int findFreeControlSprite(uint8_t *bitmap, size_t size) {
     for (size_t i = 0; i < size; ++i) {
-        if (!(bitmap[i] & (1 << i))) {
+        if (!(bitmap[i / 8] & (1 << (i % 8)))) {
             return i;
         }
     }
