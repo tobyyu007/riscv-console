@@ -1,4 +1,7 @@
-# include "group2.h"
+#include <graphic.h>
+#include <sprite_sizes.h>
+#include <stdio.h>
+#include <string.h>
 
 int createBackgroundObject(BackgroundType type,int palette, int x, int y, int z, int canvasId){
     uint32_t Object = setBackgroundObject(type,palette, x, y, z, canvasId);

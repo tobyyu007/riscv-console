@@ -1,4 +1,4 @@
-# include "group2.h"
+#include "thread.h"
 
 
 uint32_t initThread(){

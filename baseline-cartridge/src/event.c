@@ -1,4 +1,4 @@
-# include "group2.h"
+# include "event.h"
 
 bool controllerEventTriggered() {  // Check if event is triggered
     return checkControllerStatus();

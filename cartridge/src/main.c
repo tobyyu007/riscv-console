@@ -117,7 +117,7 @@ int main()
 
     // create background object
     uint32_t BackgroundObjectID = createBackgroundObject(BACKGROUND_PIXEL, FULLY_OPAQUE, 0, 0, 0, halfTimeBackgroundCanvasID);
-    // controlBackgroundObject(BACKGROUND_PIXEL, FULLY_OPAQUE, 0, 0, 0, normalBackgroundCanvas, BackgroundObjectID);
+    controlBackgroundObject(BACKGROUND_PIXEL, FULLY_OPAQUE, 0, 0, 0, normalBackgroundCanvas, BackgroundObjectID);
 
     while (1)
     {
