@@ -1,5 +1,5 @@
 .section .text, "ax"
-.global _interrupt_handler, GetTicks, GetController, InitThread, SwitchThread, ChangeMode, CreateControlSprite, FreeControlSprite, ControlSprite, CreateSprite, FreeSprite, TestSendPointer, checkControllerStatus, DirectionPadLeft, DirectionPadUp, DirectionPadDown, DirectionPadRight, ToggleButtonsUp, ToggleButtonsRight, ToggleButtonsLeft, ToggleButtonsDown, EnableCMDInterrupt, CMDInterrupted, DisableCMDInterrupt, StartTimer, EndTimer, TimeElpased, ResetTimer, GetCurrentTime, ClearTextData, ShowTextToLine
+.global _interrupt_handler, GetTicks, GetController, InitThread, SwitchThread, ChangeMode, CreateControlSprite, FreeControlSprite, ControlSprite, CreateSprite, FreeSprite, TestSendPointer, checkControllerStatus, DirectionPadLeft, DirectionPadUp, DirectionPadDown, DirectionPadRight, ToggleButtonsUp, ToggleButtonsRight, ToggleButtonsLeft, ToggleButtonsDown, EnableCMDInterrupt, CMDInterrupted, DisableCMDInterrupt, ClearTextData, ShowTextToLine, CreateBackgroundCanvas, FreeBackgroundCanvas, CreateBackgroundTileEntry, EnableVideoInterrupt, VideoInterrupted, DisableVideoInterrupt, ClearCMDInterrupt, ClearVideoInterrupt, CreateBackgroundObject, FreeBackgroundObject, ControlBackgroundObject
 
 _interrupt_handler:
     addi	sp,sp,-40
@@ -75,20 +75,20 @@ CMDInterrupted:
 DisableCMDInterrupt:
     li a5, 16
     ecall
-StartTimer:
-    li a5, 17
+EnableVideoInterrupt:
+    li a5, 22
     ecall
-EndTimer:
-    li a5, 18
+VideoInterrupted:
+    li a5, 23
     ecall
-TimeElpased:
-    li a5, 19
+DisableVideoInterrupt:
+    li a5, 24
     ecall
-ResetTimer:
-    li a5, 20
+ClearCMDInterrupt:
+    li a5, 25
     ecall
-GetCurrentTime:
-    li a5, 20
+ClearVideoInterrupt:
+    li a5, 26
     ecall
 CreateControlSprite:
     li a5, 30
@@ -113,6 +113,24 @@ ShowTextToLine:
     ecall
 ChangeMode:
     li a5, 60
+    ecall
+CreateBackgroundCanvas:
+    li a5, 70
+    ecall
+FreeBackgroundCanvas:
+    li a5, 71
+    ecall
+CreateBackgroundTileEntry:
+    li a5, 72
+    ecall
+CreateBackgroundObject:
+    li a5, 80
+    ecall
+FreeBackgroundObject:
+    li a5, 81
+    ecall
+ControlBackgroundObject:
+    li a5, 82
     ecall
 TestSendPointer:
     li a5, 100

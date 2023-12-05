@@ -1,5 +1,5 @@
 #include "group2.h"
 
-int main()
-{
+int main(){
+    return 0;
 }
