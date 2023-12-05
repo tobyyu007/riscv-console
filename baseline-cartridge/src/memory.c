@@ -1,4 +1,4 @@
-#include <memory.h>
+# include "group2.h"
 
 char* AllocateMemory(int size){
     return malloc(size);
