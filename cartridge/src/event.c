@@ -76,8 +76,6 @@ void clearInterruptTrigger(InterruptType interruptType) {  // Clear interrupt
             ClearCMDInterrupt();
             break;
     }
-
-    return false;
 }
 
 void disableInterrupt(InterruptType interruptType) {  // Disable interrupt

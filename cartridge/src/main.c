@@ -37,7 +37,7 @@ int batXOffset = 20;      // Offset for the bat in the X axis
 
 // Ball size
 int ballRadius = 8;     // Radius of the ball
-float minSpeedX = 0.6;  // Minimum X axis speed of the ball
+float minSpeedX = 0.7;  // Minimum X axis speed of the ball
 float maxSpeedX = 0.8;  // Maximum X axis speed of the ball
 float minSpeedY = -1.0; // Minimum Y axis speed of the ball
 float maxSpeedY = 1.0;  // Maximum Y axis speed of the ball
@@ -102,9 +102,9 @@ int main()
     uint32_t ballCanvasID = createCanvas(SMALL_SPRITE, ballCanvas, SMALL_SPRITE_SIZE * SMALL_SPRITE_SIZE);
     uint32_t pauseCanvasID = createCanvas(LARGE_SPRITE, pauseCanvas, LARGE_SPRITE_SIZE * LARGE_SPRITE_SIZE);
 
-    uint32_t batCanvasBackgroundID = createCanvas(LARGE_SPRITE, batCanvas, LARGE_SPRITE_SIZE * LARGE_SPRITE_SIZE);
-    uint32_t ballCanvasBackgroundID = createCanvas(SMALL_SPRITE, ballCanvas, SMALL_SPRITE_SIZE * SMALL_SPRITE_SIZE);
-    uint32_t pauseCanvasBackgroundID = createCanvas(LARGE_SPRITE, pauseCanvas, LARGE_SPRITE_SIZE * LARGE_SPRITE_SIZE);
+    // uint32_t batCanvasBackgroundID = createCanvas(LARGE_SPRITE, batCanvas, LARGE_SPRITE_SIZE * LARGE_SPRITE_SIZE);
+    // uint32_t ballCanvasBackgroundID = createCanvas(SMALL_SPRITE, ballCanvas, SMALL_SPRITE_SIZE * SMALL_SPRITE_SIZE);
+    // uint32_t pauseCanvasBackgroundID = createCanvas(LARGE_SPRITE, pauseCanvas, LARGE_SPRITE_SIZE * LARGE_SPRITE_SIZE);
 
     // create object
     uint32_t player1BatObjectID = createObject(LARGE_SPRITE, FULLY_OPAQUE, player1X, player1Y, 0, batCanvasID);
@@ -113,12 +113,12 @@ int main()
     uint32_t pauseObjectID = 0;
 
     // create background canvas
-    uint32_t normalBackgroundCanvasID = createBackgroundCanvas(BACKGROUND_PIXEL, normalBackgroundCanvas, BACKGROUND_PIXEL_SIZE);
-    uint32_t halfTimeBackgroundCanvasID = createBackgroundCanvas(BACKGROUND_PIXEL, halfTimeBackgroundCanvas, BACKGROUND_PIXEL_SIZE);
+    // uint32_t normalBackgroundCanvasID = createBackgroundCanvas(BACKGROUND_PIXEL, normalBackgroundCanvas, BACKGROUND_PIXEL_SIZE);
+    // uint32_t halfTimeBackgroundCanvasID = createBackgroundCanvas(BACKGROUND_PIXEL, halfTimeBackgroundCanvas, BACKGROUND_PIXEL_SIZE);
 
     // create background object
-    uint32_t BackgroundObjectID = createBackgroundObject(BACKGROUND_PIXEL, FULLY_OPAQUE, 0, 0, 0, halfTimeBackgroundCanvasID);
-    controlBackgroundObject(BACKGROUND_TILE, FULLY_OPAQUE, 0, 0, 0, halfTimeBackgroundCanvasID, BackgroundObjectID);
+    // uint32_t BackgroundObjectID = createBackgroundObject(BACKGROUND_PIXEL, FULLY_OPAQUE, 0, 0, 0, halfTimeBackgroundCanvasID);
+    // controlBackgroundObject(BACKGROUND_PIXEL, FULLY_OPAQUE, 0, 0, 0, normalBackgroundCanvas, BackgroundObjectID);
 
     while (1)
     {
@@ -129,7 +129,7 @@ int main()
                 // Before starting the game
 
                 // Instructions
-                sprintf(Buffer, "Welcome to Pong! %d %d", normalBackgroundCanvasID, halfTimeBackgroundCanvasID);
+                sprintf(Buffer, "Welcome to Pong!");
                 showTextToLine(Buffer, 2);
                 sprintf(Buffer, "Player 1: Use \"W\" and \"X\" to move up and down");
                 showTextToLine(Buffer, 16);
@@ -139,7 +139,7 @@ int main()
                 showTextToLine(Buffer, 20);
                 sprintf(Buffer, "Press D and J together to start the game");
                 showTextToLine(Buffer, SCREEN_ROWS / 2 + 10);
-                sprintf(Buffer, "Time limit: %d ticks", timeLimit);
+                sprintf(Buffer, "Time limit: %d seconds", timeLimit/180);
                 showTextToLine(Buffer, SCREEN_ROWS / 2 + 12);
                 sprintf(Buffer, "Background color changes at half the time limit");
                 showTextToLine(Buffer, SCREEN_ROWS / 2 + 13);
@@ -160,6 +160,7 @@ int main()
                 {
                     clearInterruptTrigger(CMDInterrupt);
                     pauseObjectID = createObject(LARGE_SPRITE, FULLY_OPAQUE, xPosMax / 2 - LARGE_SPRITE_SIZE / 2, yPosMax / 2 - LARGE_SPRITE_SIZE / 2, 0, pauseCanvasID);
+                    controlObject(LARGE_SPRITE, FULLY_OPAQUE, xPosMax / 2 - LARGE_SPRITE_SIZE / 2, yPosMax / 2 - LARGE_SPRITE_SIZE / 2, 0, pauseCanvasID, pauseObjectID);
                     enableInterrupt(VideoInterrupt);
                     while (checkInterruptTrigger(VideoInterrupt))
                     {
@@ -176,7 +177,7 @@ int main()
 
                 if (timeElapsed() >= timeLimit / 2 && !halfTime)
                 {
-                    controlBackgroundObject(BACKGROUND_TILE, FULLY_OPAQUE, 0, 0, 0, halfTimeBackgroundCanvasID, BackgroundObjectID);
+                    // controlBackgroundObject(BACKGROUND_PIXEL, FULLY_OPAQUE, 0, 0, 0, halfTimeBackgroundCanvasID, BackgroundObjectID);
                     halfTime = true;
                 }
 
@@ -256,7 +257,7 @@ int main()
                     endTimer();
                     strcpy(Buffer, "Press D and J together to restart");
                     showTextToLine(Buffer, SCREEN_ROWS / 2 + 2);
-                    sprintf(Buffer, "Playing Time: %d hundred ticks", timeElapsed() / 100);
+                    sprintf(Buffer, "Playing Time: %d seconds", timeElapsed() / 180);
                     showTextToLine(Buffer, SCREEN_ROWS / 2 + 4);
                     displayMode(TEXT_MODE);
 
@@ -268,7 +269,7 @@ int main()
                         {
                             // Re-Initialize game
                             initGame();
-                            controlBackgroundObject(BACKGROUND_TILE, FULLY_OPAQUE, 0, 0, 0, normalBackgroundCanvasID, BackgroundObjectID);
+                            // controlBackgroundObject(BACKGROUND_PIXEL, FULLY_OPAQUE, 0, 0, 0, normalBackgroundCanvasID, BackgroundObjectID);
                             startTimer();
                             displayMode(GRAPHICS_MODE);
                             clearInterruptTrigger(VideoInterrupt);
