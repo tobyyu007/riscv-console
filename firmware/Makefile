@@ -37,7 +37,9 @@ TARGET_OBJS =   $(OBJ_DIR)/main.o               \
                 $(OBJ_DIR)/interrupt.o          \
                 $(OBJ_DIR)/startup.o			\
 				$(OBJ_DIR)/ManageSprite.o       \
-				$(OBJ_DIR)/ControlSprite.o
+				$(OBJ_DIR)/ControlSprite.o		\
+				$(OBJ_DIR)/Background.o			\
+				$(OBJ_DIR)/ControlBackground.o
 all: directories $(BIN_DIR)/$(TARGET_NAME)
 
 $(BIN_DIR)/$(TARGET_NAME): $(TARGET_OBJS)

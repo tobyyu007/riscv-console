@@ -2,14 +2,14 @@
 
 #include <ControlSprite.h>
 
-uint32_t largeSpriteControlBitmap[NUM_LARGE_CONTROLS / 32];    // Each element is 32 bits
-uint32_t mediumSpriteControlBitmap[NUM_MEDIUM_CONTROLS / 32];  // Each element is 32 bits
-uint32_t smallSpriteControlBitmap[NUM_SMALL_CONTROLS / 32];    // Each element is 32 bits
+uint8_t largeSpriteControlBitmap[NUM_LARGE_CONTROLS / 8];
+uint8_t mediumSpriteControlBitmap[NUM_MEDIUM_CONTROLS / 8];
+uint8_t smallSpriteControlBitmap[NUM_SMALL_CONTROLS / 8];
 
 // Internal functions for bitmap manipulation
-static int findFreeControlSprite(uint32_t *bitmap, size_t size);
-static void setBitmap(uint32_t *bitmap, int index);
-static void clearBitmap(uint32_t *bitmap, int index);
+static int findFreeControlSprite(uint8_t *bitmap, size_t size);
+static void setBitmap(uint8_t *bitmap, int index);
+static void clearBitmap(uint8_t *bitmap, int index);
 
 void initSpriteControlSystem(void) {
     memset(largeSpriteControlBitmap, 0, sizeof(largeSpriteControlBitmap));
@@ -17,8 +17,8 @@ void initSpriteControlSystem(void) {
     memset(smallSpriteControlBitmap, 0, sizeof(smallSpriteControlBitmap));
 }
 
-int createControlSprite(SpriteSize size, uint32_t canvasId) {
-    uint32_t *bitmap;
+int createControlSprite(SpriteSize size, uint32_t spriteControl) {// canvasId need or not?
+    uint8_t *bitmap;
     size_t bitmapSize;
     size_t spriteSize;
     volatile uint32_t *spriteBase;
@@ -52,7 +52,7 @@ int createControlSprite(SpriteSize size, uint32_t canvasId) {
     }
 
     // Copy the uint32_t spriteControl to the spriteBase
-    spriteBase[index] = canvasId;
+    spriteBase[index] = spriteControl;
 
     setBitmap(bitmap, index);
 
@@ -60,7 +60,7 @@ int createControlSprite(SpriteSize size, uint32_t canvasId) {
 }
 
 int controlSprite(SpriteSize size, uint32_t spriteControl, int objectId){
-    uint32_t *bitmap;
+    uint8_t *bitmap;
     size_t bitmapSize;
     size_t spriteSize;
     volatile uint32_t *spriteBase;
@@ -91,7 +91,7 @@ int controlSprite(SpriteSize size, uint32_t spriteControl, int objectId){
 }
 
 int freeControlSprite(SpriteSize size, int objectId) {
-    uint32_t *bitmap;
+    uint8_t *bitmap;
     size_t bitmapSize;
     size_t spriteSize;
     volatile uint32_t *spriteBase;
@@ -128,9 +128,9 @@ int freeControlSprite(SpriteSize size, int objectId) {
 }
 
 // Finds the first free sprite slot in the bitmap
-static int findFreeControlSprite(uint32_t *bitmap, size_t size) {
+static int findFreeControlSprite(uint8_t *bitmap, size_t size) {
     for (size_t i = 0; i < size; ++i) {
-        if (!(bitmap[i] & (1 << i))) {
+        if (!(bitmap[i / 8] & (1 << (i % 8)))) {
             return i;
         }
     }
@@ -138,11 +138,11 @@ static int findFreeControlSprite(uint32_t *bitmap, size_t size) {
 }
 
 // Sets the bit at the specified index in the bitmap
-static void setBitmap(uint32_t *bitmap, int index) {
-    bitmap[index] |= (1 << index);
+static void setBitmap(uint8_t *bitmap, int index) {
+    bitmap[index / 8] |= (1 << (index % 8));
 }
 
 // Clears the bit at the specified index in the bitmap
-static void clearBitmap(uint32_t *bitmap, int index) {
-    bitmap[index] &= ~(1 << index);
+static void clearBitmap(uint8_t *bitmap, int index) {
+    bitmap[index / 8] &= ~(1 << (index % 8));
 }

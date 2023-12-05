@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include "ManageSprite.h"
 #include "ControlSprite.h"
+#include "Background.h"
 #include "colors.h"
 
 volatile int global = 42;
@@ -15,8 +16,14 @@ extern volatile uint32_t video_interrupt_count;
 extern volatile uint32_t CMD_interrupt_count;
 volatile uint32_t *GRAPHICS_MODE = (volatile uint32_t *)(0x500F6780);
 
+
 void initSpriteSystem(void);
 void initializePalette(void);
+void initBackgroundSystem(void);
+
+int createBackgroundCanvas(BackgroundType type, const uint8_t *buffer, size_t bufferSize);
+int createBackgroundTileEntry(int tileIndex, int entryIndex, const uint8_t *buffer, size_t bufferSize);
+
 
 int count = 0;
 
@@ -26,20 +33,24 @@ int main() {
     int last_global = 42;
     int x_pos = 12;
     char *Buffer = malloc(128);
-    strcpy(Buffer, "OS Started");
+    sprintf(Buffer, "Welcome to group 2's OS!");
     strcpy((char *)VIDEO_MEMORY, Buffer);
 
+    initBackgroundSystem();
     initializePalette();
     initSpriteSystem();
     initSpriteControlSystem();
+
+
     *GRAPHICS_MODE = 0; // 0: text mode/ 1: graphic mode 
+
     while (1) {
         if(*CartridgeStatus & 0x1){
             FunctionPtr Fun = (FunctionPtr)((*CartridgeStatus) & 0xFFFFFFFC);
             Fun();
         }
-        sprintf(Buffer, "Video Interrupts: %u counter: %d", CMD_interrupt_count, count++);
-        strcpy((char *)VIDEO_MEMORY + 16, Buffer);
+        // sprintf(Buffer, "Video Interrupts: %u counter: %d", CMD_interrupt_count, count++);
+        // strcpy((char *)VIDEO_MEMORY + 16, Buffer);
     }
     return 0;
 }

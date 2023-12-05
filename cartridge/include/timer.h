@@ -3,11 +3,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-uint32_t StartTimer(void);
-uint32_t EndTimer(void);
-uint32_t TimeElpased(void);
-uint32_t ResetTimer(void);
-uint32_t GetCurrentTime(void);
+uint32_t GetTicks(void);
 
 /**
  * @brief Starts the timer.
@@ -20,8 +16,8 @@ void startTimer();
 void endTimer();
 
 /**
- * @brief Returns the elapsed time in milliseconds.
- * @return The elapsed time in milliseconds.
+ * @brief Returns the elapsed tick.
+ * @return The elapsed tick.
  */
 uint32_t timeElapsed();
 
@@ -30,6 +26,13 @@ uint32_t timeElapsed();
  */
 void resetTimer();
 
-uint32_t getCurrentTime();
+/**
+ * @brief Get the current tick value.
+ *
+ * This function returns the current tick value of the timer.
+ *
+ * @return The current tick value.
+ */
+uint32_t getCurrentTick();
 
 #endif // TIMER_H
