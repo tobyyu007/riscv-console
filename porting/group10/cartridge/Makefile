@@ -34,8 +34,11 @@ TARGET_NAME = riscv-console-example
 
 TARGET_OBJS =   $(OBJ_DIR)/main.o               \
                 $(OBJ_DIR)/crt0.o               \
-                $(OBJ_DIR)/api.o          \
-                $(OBJ_DIR)/startup.o           
+                $(OBJ_DIR)/api.o          		\
+                $(OBJ_DIR)/startup.o            \
+				$(OBJ_DIR)/event.o            	\
+				$(OBJ_DIR)/timer.o            	\
+				$(OBJ_DIR)/memory.o            	\
 				
 
 all: directories $(BIN_DIR)/$(TARGET_NAME)

@@ -68,9 +68,7 @@ bool collision(int playerTopLeftX, int playerTopLeftY, int pingPongX, int pingPo
 void handleCollision(float *speedX, float *speedY, float *pingPongX, float *pingPongY, int batX, int batY);
 bool checkCollision(int playerTopLeftX, int playerTopLeftY, int pingPongX, int pingPongY, int rectangleWidth, int rectangleHeight, int ballRadius);
 void clearTextData();
-void showTextToLine(const char *text, int line);
 void initGame();
-
 
 
 int main()

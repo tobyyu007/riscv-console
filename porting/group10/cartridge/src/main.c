@@ -4,6 +4,9 @@
 #include <string.h>
 
 #include "api.h"
+#include "event.h"
+#include "timer.h"
+#include "memory.h"
 
 volatile int global = 42;
 volatile uint32_t controller_status = 0;
@@ -30,6 +33,7 @@ int main() {
     char Buffer[64];
     snprintf(Buffer, sizeof(Buffer), "GAME INSERTED");
     strcpy((char *)VIDEO_MEMORY, Buffer);
+    enableInterrupt(VideoInterrupt);
 
     while (1) {
         int c = a + b + global;
@@ -38,25 +42,24 @@ int main() {
         }
         global = GetTicks();
         if (global != last_global) {
-            controller_status = GetController();
-            if (controller_status) {
+            if (controllerEventTriggered()) {
                 VIDEO_MEMORY[x_pos] = ' ';
-                if (controller_status & 0x1) {
+                if (checkDirectionTrigger(DirectionPad, DirectionLeft)) {
                     if (x_pos & 0x3F) {
                         x_pos--;
                     }
                 }
-                if (controller_status & 0x2) {
+                if (checkDirectionTrigger(DirectionPad, DirectionUp)) {
                     if (x_pos >= 0x40) {
                         x_pos -= 0x40;
                     }
                 }
-                if (controller_status & 0x4) {
+                if (checkDirectionTrigger(DirectionPad, DirectionDown)) {
                     if (x_pos < 0x8C0) {
                         x_pos += 0x40;
                     }
                 }
-                if (controller_status & 0x8) {
+                if (checkDirectionTrigger(DirectionPad, DirectionRight)) {
                     if ((x_pos & 0x3F) != 0x3F) {
                         x_pos++;
                     }
