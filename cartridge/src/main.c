@@ -98,10 +98,6 @@ int main()
     int ballCanvasID = createCanvas(SMALL_SPRITE, ballCanvas, SMALL_SPRITE_SIZE * SMALL_SPRITE_SIZE);
     int pauseCanvasID = createCanvas(LARGE_SPRITE, pauseCanvas, LARGE_SPRITE_SIZE * LARGE_SPRITE_SIZE);
 
-    // uint32_t batCanvasBackgroundID = createCanvas(LARGE_SPRITE, batCanvas, LARGE_SPRITE_SIZE * LARGE_SPRITE_SIZE);
-    // uint32_t ballCanvasBackgroundID = createCanvas(SMALL_SPRITE, ballCanvas, SMALL_SPRITE_SIZE * SMALL_SPRITE_SIZE);
-    // uint32_t pauseCanvasBackgroundID = createCanvas(LARGE_SPRITE, pauseCanvas, LARGE_SPRITE_SIZE * LARGE_SPRITE_SIZE);
-
     // create object
     int player1BatObjectID = createObject(LARGE_SPRITE, FULLY_OPAQUE, player1X, player1Y, 0, batCanvasID);
     int player2BatObjectID = createObject(LARGE_SPRITE, FULLY_OPAQUE, player2X, player2Y, 0, batCanvasID);
@@ -113,8 +109,7 @@ int main()
     int halfTimeBackgroundCanvasID = createBackgroundCanvas(BACKGROUND_PIXEL, halfTimeBackgroundCanvas, BACKGROUND_PIXEL_SIZE);
 
     // create background object
-    int BackgroundObjectID = createBackgroundObject(BACKGROUND_PIXEL, FULLY_OPAQUE, 0, 0, 0, halfTimeBackgroundCanvasID);
-    controlBackgroundObject(BACKGROUND_PIXEL, FULLY_OPAQUE, 0, 0, 0, normalBackgroundCanvasID, BackgroundObjectID);
+    int backgroundObjectID = createBackgroundObject(BACKGROUND_PIXEL, FULLY_OPAQUE, 0, 0, 0, normalBackgroundCanvasID);
 
     while (1)
     {
@@ -172,7 +167,7 @@ int main()
 
                 if (timeElapsed() >= timeLimit / 2 && !halfTime)
                 {
-                    controlBackgroundObject(BACKGROUND_PIXEL, FULLY_OPAQUE, 0, 0, 0, halfTimeBackgroundCanvasID, BackgroundObjectID);
+                    controlBackgroundObject(BACKGROUND_PIXEL, FULLY_OPAQUE, 0, 0, 0, halfTimeBackgroundCanvasID, backgroundObjectID);
                     halfTime = true;
                 }
 
@@ -264,7 +259,7 @@ int main()
                         {
                             // Re-Initialize game
                             initGame();
-                            controlBackgroundObject(BACKGROUND_PIXEL, FULLY_OPAQUE, 0, 0, 0, normalBackgroundCanvasID, BackgroundObjectID);
+                            controlBackgroundObject(BACKGROUND_PIXEL, FULLY_OPAQUE, 0, 0, 0, normalBackgroundCanvasID, backgroundObjectID);
                             startTimer();
                             displayMode(GRAPHICS_MODE);
                             clearInterruptTrigger(VideoInterrupt);
