@@ -37,8 +37,8 @@ int batXOffset = 20;      // Offset for the bat in the X axis
 
 // Ball size
 int ballRadius = 8;     // Radius of the ball
-float minSpeedX = 0.7;  // Minimum X axis speed of the ball
-float maxSpeedX = 0.8;  // Maximum X axis speed of the ball
+float minSpeedX = 0.6;  // Minimum X axis speed of the ball
+float maxSpeedX = 0.7;  // Maximum X axis speed of the ball
 float minSpeedY = -1.0; // Minimum Y axis speed of the ball
 float maxSpeedY = 1.0;  // Maximum Y axis speed of the ball
 
@@ -106,7 +106,8 @@ int main()
     int player1BatObjectID = createObject(LARGE_SPRITE, FULLY_OPAQUE, player1X, player1Y, 0, batCanvasID);
     int player2BatObjectID = createObject(LARGE_SPRITE, FULLY_OPAQUE, player2X, player2Y, 0, batCanvasID);
     int ballObjectID = createObject(SMALL_SPRITE, FULLY_OPAQUE, pingPongX, pingPongY, 0, ballCanvasID);
-    int pauseObjectID = 0;
+    int pauseObjectID = createObject(LARGE_SPRITE, FULLY_TRANSPARENT, xPosMax / 2 - LARGE_SPRITE_SIZE / 2, yPosMax / 2 - LARGE_SPRITE_SIZE / 2, 0, pauseCanvasID);
+    
     // create background canvas
     int normalBackgroundCanvasID = createBackgroundCanvas(BACKGROUND_PIXEL, normalBackgroundCanvas, BACKGROUND_PIXEL_SIZE);
     int halfTimeBackgroundCanvasID = createBackgroundCanvas(BACKGROUND_PIXEL, halfTimeBackgroundCanvas, BACKGROUND_PIXEL_SIZE);
@@ -154,8 +155,7 @@ int main()
                 if (checkInterruptTrigger(CMDInterrupt))
                 {
                     clearInterruptTrigger(CMDInterrupt);
-                    pauseObjectID = createObject(LARGE_SPRITE, FULLY_TRANSPARENT, xPosMax / 2 - LARGE_SPRITE_SIZE / 2, yPosMax / 2 - LARGE_SPRITE_SIZE / 2, 0, pauseCanvasID);
-                    controlObject(LARGE_SPRITE, FULLY_TRANSPARENT, xPosMax / 2 - LARGE_SPRITE_SIZE / 2, yPosMax / 2 - LARGE_SPRITE_SIZE / 2, 0, pauseCanvasID, pauseObjectID);
+                    controlObject(LARGE_SPRITE, FULLY_OPAQUE, xPosMax / 2 - LARGE_SPRITE_SIZE / 2, yPosMax / 2 - LARGE_SPRITE_SIZE / 2, 0, pauseCanvasID, pauseObjectID);
                     enableInterrupt(VideoInterrupt);
                     while (checkInterruptTrigger(VideoInterrupt))
                     {
@@ -167,7 +167,7 @@ int main()
                             startTimer();
                         }
                     }
-                    freeObject(LARGE_SPRITE, pauseObjectID);
+                    controlObject(LARGE_SPRITE, FULLY_TRANSPARENT, xPosMax / 2 - LARGE_SPRITE_SIZE / 2, yPosMax / 2 - LARGE_SPRITE_SIZE / 2, 0, pauseCanvasID, pauseObjectID);
                 }
 
                 if (timeElapsed() >= timeLimit / 2 && !halfTime)
@@ -385,7 +385,7 @@ void fillCanvas()
     {
         for (int x = 0; x < BACKGROUND_PIXEL_WIDTH; x++)
         {
-            halfTimeBackgroundCanvas[y * BACKGROUND_PIXEL_WIDTH + x] = PLUM;
+            halfTimeBackgroundCanvas[y * BACKGROUND_PIXEL_WIDTH + x] = RASPBERRY;
         }
     }
     // for(int y = 0; y < TILE_ENTRY_HEIGHT; y++){
