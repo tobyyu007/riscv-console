@@ -72,13 +72,9 @@ void showTextToLine(const char *text, int line);
 void initGame();
 
 
+
 int main()
 {
-    volatile uint32_t *LARGE_PALETTE_0 = (volatile uint32_t *)(0x500F1000);
-    LARGE_PALETTE_0[1] = 0x00000000;
-    volatile uint32_t *SMALL_PALETTE_0 = (volatile uint32_t *)(0x500F3000);
-    SMALL_PALETTE_0[1] = 0x00000000;
-
     int countdown = 1;
     global = getCurrentTick();
     bool gameStart = false;
@@ -158,8 +154,8 @@ int main()
                 if (checkInterruptTrigger(CMDInterrupt))
                 {
                     clearInterruptTrigger(CMDInterrupt);
-                    pauseObjectID = createObject(LARGE_SPRITE, FULLY_OPAQUE, xPosMax / 2 - LARGE_SPRITE_SIZE / 2, yPosMax / 2 - LARGE_SPRITE_SIZE / 2, 0, pauseCanvasID);
-                    controlObject(LARGE_SPRITE, FULLY_OPAQUE, xPosMax / 2 - LARGE_SPRITE_SIZE / 2, yPosMax / 2 - LARGE_SPRITE_SIZE / 2, 0, pauseCanvasID, pauseObjectID);
+                    pauseObjectID = createObject(LARGE_SPRITE, FULLY_TRANSPARENT, xPosMax / 2 - LARGE_SPRITE_SIZE / 2, yPosMax / 2 - LARGE_SPRITE_SIZE / 2, 0, pauseCanvasID);
+                    controlObject(LARGE_SPRITE, FULLY_TRANSPARENT, xPosMax / 2 - LARGE_SPRITE_SIZE / 2, yPosMax / 2 - LARGE_SPRITE_SIZE / 2, 0, pauseCanvasID, pauseObjectID);
                     enableInterrupt(VideoInterrupt);
                     while (checkInterruptTrigger(VideoInterrupt))
                     {
@@ -309,7 +305,7 @@ void fillCanvas()
             else
             {
                 // Outside the rectangle (background area)
-                batCanvas[y * LARGE_SPRITE_SIZE + x] = 1;
+                batCanvas[y * LARGE_SPRITE_SIZE + x] = 0;
             }
         }
     }
@@ -332,7 +328,7 @@ void fillCanvas()
             }
             else
             {
-                ballCanvas[y * SMALL_SPRITE_SIZE + x] = 1;
+                ballCanvas[y * SMALL_SPRITE_SIZE + x] = NO_COLOR;
             }
         }
     }
@@ -365,7 +361,7 @@ void fillCanvas()
             }
             else
             {
-                pauseCanvas[y * LARGE_SPRITE_SIZE + x] = 1; // Transparent or background color
+                pauseCanvas[y * LARGE_SPRITE_SIZE + x] = NO_COLOR; // Transparent or background color
             }
 
             // Drawing the rectangles inside the circle
