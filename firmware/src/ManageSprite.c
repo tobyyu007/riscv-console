@@ -145,24 +145,42 @@ void initializePalette() {
         numColors = 255;
     }
 
-    for (size_t i = 0; i < numColors; i++) {
+    // Set index 0 to transparent for all palettes
+    BACKGROUND_PALETTE_0[0] = 0x00000000; // Transparent
+    BACKGROUND_PALETTE_1[0] = 0x00000000; // Transparent
+    BACKGROUND_PALETTE_2[0] = 0x00000000; // Transparent
+    BACKGROUND_PALETTE_3[0] = 0x00000000; // Transparent
+    LARGE_PALETTE_0[0] = 0x00000000; // Transparent
+    LARGE_PALETTE_1[0] = 0x00000000; // Transparent
+    LARGE_PALETTE_2[0] = 0x00000000; // Transparent
+    LARGE_PALETTE_3[0] = 0x00000000; // Transparent
+    MEDIUM_PALETTE_0[0] = 0x00000000; // Transparent
+    MEDIUM_PALETTE_1[0] = 0x00000000; // Transparent
+    MEDIUM_PALETTE_2[0] = 0x00000000; // Transparent
+    MEDIUM_PALETTE_3[0] = 0x00000000; // Transparent
+    SMALL_PALETTE_0[0] = 0x00000000; // Transparent
+    SMALL_PALETTE_1[0] = 0x00000000; // Transparent
+    SMALL_PALETTE_2[0] = 0x00000000; // Transparent
+    SMALL_PALETTE_3[0] = 0x00000000; // Transparent
+
+    for (size_t i = 1; i < numColors; i++) {
         uint32_t color = colorList[i];
         BACKGROUND_PALETTE_0[i] = (color & 0x00FFFFFF) | (0xFF << 24);  // 100% opacity
         BACKGROUND_PALETTE_1[i] = (color & 0x00FFFFFF) | (0x99 << 24);  // 60% opacity
         BACKGROUND_PALETTE_2[i] = (color & 0x00FFFFFF) | (0x4C << 24);  // 30% opacity
-        BACKGROUND_PALETTE_3[i] = (color & 0x00FFFFFF) | (0x00 << 24);  // 0% opacity
+        BACKGROUND_PALETTE_3[i] = 0x00000000;  // 0% opacity
         LARGE_PALETTE_0[i] = (color & 0x00FFFFFF) | (0xFF << 24);  // 100% opacity
         LARGE_PALETTE_1[i] = (color & 0x00FFFFFF) | (0x99 << 24);  // 60% opacity
         LARGE_PALETTE_2[i] = (color & 0x00FFFFFF) | (0x4C << 24);  // 30% opacity
-        LARGE_PALETTE_3[i] = (color & 0x00FFFFFF) | (0x00 << 24);  // 0% opacity
+        LARGE_PALETTE_3[i] = 0x00000000;  // 0% opacity
         MEDIUM_PALETTE_0[i] = (color & 0x00FFFFFF) | (0xFF << 24);  // 100% opacity
         MEDIUM_PALETTE_1[i] = (color & 0x00FFFFFF) | (0x99 << 24);  // 60% opacity
         MEDIUM_PALETTE_2[i] = (color & 0x00FFFFFF) | (0x4C << 24);  // 30% opacity
-        MEDIUM_PALETTE_3[i] = (color & 0x00FFFFFF) | (0x00 << 24);  // 0% opacity
+        MEDIUM_PALETTE_3[i] = 0x00000000;  // 0% opacity
         SMALL_PALETTE_0[i] = (color & 0x00FFFFFF) | (0xFF << 24);  // 100% opacity
         SMALL_PALETTE_1[i] = (color & 0x00FFFFFF) | (0x99 << 24);  // 60% opacity
         SMALL_PALETTE_2[i] = (color & 0x00FFFFFF) | (0x4C << 24);  // 30% opacity
-        SMALL_PALETTE_3[i] = (color & 0x00FFFFFF) | (0x00 << 24);  // 0% opacity
+        SMALL_PALETTE_3[i] = 0x00000000;  // 0% opacity
     }
 }
 
