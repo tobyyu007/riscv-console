@@ -37,8 +37,8 @@ int batXOffset = 20;      // Offset for the bat in the X axis
 
 // Ball size
 int ballRadius = 8;     // Radius of the ball
-float minSpeedX = 0.7;  // Minimum X axis speed of the ball
-float maxSpeedX = 0.8;  // Maximum X axis speed of the ball
+float minSpeedX = 0.6;  // Minimum X axis speed of the ball
+float maxSpeedX = 0.7;  // Maximum X axis speed of the ball
 float minSpeedY = -1.0; // Minimum Y axis speed of the ball
 float maxSpeedY = 1.0;  // Maximum Y axis speed of the ball
 
@@ -72,13 +72,9 @@ void showTextToLine(const char *text, int line);
 void initGame();
 
 
+
 int main()
 {
-    volatile uint32_t *LARGE_PALETTE_0 = (volatile uint32_t *)(0x500F1000);
-    LARGE_PALETTE_0[1] = 0x00000000;
-    volatile uint32_t *SMALL_PALETTE_0 = (volatile uint32_t *)(0x500F3000);
-    SMALL_PALETTE_0[1] = 0x00000000;
-
     int countdown = 1;
     global = getCurrentTick();
     bool gameStart = false;
@@ -102,22 +98,18 @@ int main()
     int ballCanvasID = createCanvas(SMALL_SPRITE, ballCanvas, SMALL_SPRITE_SIZE * SMALL_SPRITE_SIZE);
     int pauseCanvasID = createCanvas(LARGE_SPRITE, pauseCanvas, LARGE_SPRITE_SIZE * LARGE_SPRITE_SIZE);
 
-    // uint32_t batCanvasBackgroundID = createCanvas(LARGE_SPRITE, batCanvas, LARGE_SPRITE_SIZE * LARGE_SPRITE_SIZE);
-    // uint32_t ballCanvasBackgroundID = createCanvas(SMALL_SPRITE, ballCanvas, SMALL_SPRITE_SIZE * SMALL_SPRITE_SIZE);
-    // uint32_t pauseCanvasBackgroundID = createCanvas(LARGE_SPRITE, pauseCanvas, LARGE_SPRITE_SIZE * LARGE_SPRITE_SIZE);
-
     // create object
     int player1BatObjectID = createObject(LARGE_SPRITE, FULLY_OPAQUE, player1X, player1Y, 0, batCanvasID);
     int player2BatObjectID = createObject(LARGE_SPRITE, FULLY_OPAQUE, player2X, player2Y, 0, batCanvasID);
     int ballObjectID = createObject(SMALL_SPRITE, FULLY_OPAQUE, pingPongX, pingPongY, 0, ballCanvasID);
-    int pauseObjectID = 0;
+    int pauseObjectID = createObject(LARGE_SPRITE, FULLY_TRANSPARENT, xPosMax / 2 - LARGE_SPRITE_SIZE / 2, yPosMax / 2 - LARGE_SPRITE_SIZE / 2, 0, pauseCanvasID);
+    
     // create background canvas
     int normalBackgroundCanvasID = createBackgroundCanvas(BACKGROUND_PIXEL, normalBackgroundCanvas, BACKGROUND_PIXEL_SIZE);
     int halfTimeBackgroundCanvasID = createBackgroundCanvas(BACKGROUND_PIXEL, halfTimeBackgroundCanvas, BACKGROUND_PIXEL_SIZE);
 
     // create background object
-    int BackgroundObjectID = createBackgroundObject(BACKGROUND_PIXEL, FULLY_OPAQUE, 0, 0, 0, halfTimeBackgroundCanvasID);
-    controlBackgroundObject(BACKGROUND_PIXEL, FULLY_OPAQUE, 0, 0, 0, normalBackgroundCanvasID, BackgroundObjectID);
+    int backgroundObjectID = createBackgroundObject(BACKGROUND_PIXEL, FULLY_OPAQUE, 0, 0, 0, normalBackgroundCanvasID);
 
     while (1)
     {
@@ -158,7 +150,6 @@ int main()
                 if (checkInterruptTrigger(CMDInterrupt))
                 {
                     clearInterruptTrigger(CMDInterrupt);
-                    pauseObjectID = createObject(LARGE_SPRITE, FULLY_OPAQUE, xPosMax / 2 - LARGE_SPRITE_SIZE / 2, yPosMax / 2 - LARGE_SPRITE_SIZE / 2, 0, pauseCanvasID);
                     controlObject(LARGE_SPRITE, FULLY_OPAQUE, xPosMax / 2 - LARGE_SPRITE_SIZE / 2, yPosMax / 2 - LARGE_SPRITE_SIZE / 2, 0, pauseCanvasID, pauseObjectID);
                     enableInterrupt(VideoInterrupt);
                     while (checkInterruptTrigger(VideoInterrupt))
@@ -171,12 +162,12 @@ int main()
                             startTimer();
                         }
                     }
-                    freeObject(LARGE_SPRITE, pauseObjectID);
+                    controlObject(LARGE_SPRITE, FULLY_TRANSPARENT, xPosMax / 2 - LARGE_SPRITE_SIZE / 2, yPosMax / 2 - LARGE_SPRITE_SIZE / 2, 0, pauseCanvasID, pauseObjectID);
                 }
 
                 if (timeElapsed() >= timeLimit / 2 && !halfTime)
                 {
-                    controlBackgroundObject(BACKGROUND_PIXEL, FULLY_OPAQUE, 0, 0, 0, halfTimeBackgroundCanvasID, BackgroundObjectID);
+                    controlBackgroundObject(BACKGROUND_PIXEL, FULLY_OPAQUE, 0, 0, 0, halfTimeBackgroundCanvasID, backgroundObjectID);
                     halfTime = true;
                 }
 
@@ -268,7 +259,7 @@ int main()
                         {
                             // Re-Initialize game
                             initGame();
-                            controlBackgroundObject(BACKGROUND_PIXEL, FULLY_OPAQUE, 0, 0, 0, normalBackgroundCanvasID, BackgroundObjectID);
+                            controlBackgroundObject(BACKGROUND_PIXEL, FULLY_OPAQUE, 0, 0, 0, normalBackgroundCanvasID, backgroundObjectID);
                             startTimer();
                             displayMode(GRAPHICS_MODE);
                             clearInterruptTrigger(VideoInterrupt);
@@ -309,7 +300,7 @@ void fillCanvas()
             else
             {
                 // Outside the rectangle (background area)
-                batCanvas[y * LARGE_SPRITE_SIZE + x] = 1;
+                batCanvas[y * LARGE_SPRITE_SIZE + x] = 0;
             }
         }
     }
@@ -332,7 +323,7 @@ void fillCanvas()
             }
             else
             {
-                ballCanvas[y * SMALL_SPRITE_SIZE + x] = 1;
+                ballCanvas[y * SMALL_SPRITE_SIZE + x] = NO_COLOR;
             }
         }
     }
@@ -365,7 +356,7 @@ void fillCanvas()
             }
             else
             {
-                pauseCanvas[y * LARGE_SPRITE_SIZE + x] = 1; // Transparent or background color
+                pauseCanvas[y * LARGE_SPRITE_SIZE + x] = NO_COLOR; // Transparent or background color
             }
 
             // Drawing the rectangles inside the circle
@@ -389,7 +380,7 @@ void fillCanvas()
     {
         for (int x = 0; x < BACKGROUND_PIXEL_WIDTH; x++)
         {
-            halfTimeBackgroundCanvas[y * BACKGROUND_PIXEL_WIDTH + x] = PLUM;
+            halfTimeBackgroundCanvas[y * BACKGROUND_PIXEL_WIDTH + x] = RASPBERRY;
         }
     }
     // for(int y = 0; y < TILE_ENTRY_HEIGHT; y++){
