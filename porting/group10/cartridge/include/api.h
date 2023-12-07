@@ -4,38 +4,41 @@
 #define API_H
 
 // retrieval system calls
-uint32_t GetTicks(void);
-uint32_t GetController(void);
+uint32_t getTicks(void);
+uint32_t getController(void);
 
 // timer system calls
-uint32_t GetTimeStart(void);
-uint32_t GetTimeEnd(uint64_t start);
+uint32_t getTimeStart(void);
+uint32_t getTimeEnd(uint64_t start);
 
 // graphic system calls
-int EnableTextMode(void);
-int EnableGraphicsMode(void);
+uint32_t enableTextMode(void);
+uint32_t enableGraphicsMode(void);
 
-int CreateSmallSprite();
-int SetSmallPalette(uint32_t index, uint32_t color);
-int SetSmallControl(uint32_t index, uint32_t palette, uint32_t x, uint32_t y,
-                    uint32_t z);
+enum ShapeType { SQUARE, CIRCLE, TRIANGLE, PARALLELOGRAM, NOUGHT, CROSS };
 
-int CreateMediumSprite();
-int SetMediumPalette(uint32_t index, uint32_t color);
-int SetMediumControl(uint32_t index, uint32_t palette, uint32_t x, uint32_t y,
-                     uint32_t z);
-
-int CreateLargeSprite();
-int SetLargePalette(uint32_t index, uint32_t color);
-int SetLargeControl(uint32_t index, uint32_t palette, uint32_t x, uint32_t y,
-                    uint32_t z);
-
-int SetBackgroundData(uint32_t x, uint32_t y);
-int SetBackgroundPalette(uint32_t index, uint32_t color);
-int SetBackgroundControl(uint32_t index, uint32_t palette, uint32_t x,
+uint32_t createSmallSprite(enum ShapeType shapeType);
+uint32_t setSmallPalette(uint32_t index, uint32_t color);
+uint32_t setSmallControl(uint32_t index, uint32_t palette, uint32_t x,
                          uint32_t y, uint32_t z);
-
-uint32_t SystemCall(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg3,
+uint32_t getSmallSpriteCount();
+uint32_t createMediumSprite(enum ShapeType shapeType);
+uint32_t setMediumPalette(uint32_t index, uint32_t color);
+uint32_t setMediumControl(uint32_t index, uint32_t palette, uint32_t x,
+                          uint32_t y, uint32_t z);
+uint32_t getMediumSpriteCount();
+uint32_t createLargeSprite(enum ShapeType shapeType);
+uint32_t setLargePalette(uint32_t index, uint32_t color);
+uint32_t setLargeControl(uint32_t index, uint32_t palette, uint32_t x,
+                         uint32_t y, uint32_t z);
+uint32_t getLargeSpriteCount();
+uint32_t createBackground();
+uint32_t setBackgroundPalette(uint32_t index, uint32_t color);
+uint32_t setBackgroundControl(uint32_t index, uint32_t palette, uint32_t x,
+                              uint32_t y, uint32_t z);
+uint32_t getCMDInterruptCount();
+uint32_t getVideoInterruptCount();
+uint32_t systemCall(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg3,
                     uint32_t arg4, uint32_t call);
 
 #endif

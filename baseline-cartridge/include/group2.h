@@ -251,7 +251,7 @@ uint32_t SwitchThread();
 // Thread API End
 
 // Timer API
-uint32_t GetTicks(void);
+uint32_t getTicks(void);
 // Timer API End
 
 // Event API

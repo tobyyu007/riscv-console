@@ -24,10 +24,10 @@ int main() {
                     // none exists, set to 12
     int countdown = 1;
 
-    last_global = GetTicks();
+    last_global = getTicks();
 
     // EnableTextMode();
-    EnableTextMode();
+    enableTextMode();
     
     // Output to screen
     char Buffer[64];
@@ -40,7 +40,7 @@ int main() {
         if (a == 11) {
             b++;
         }
-        global = GetTicks();
+        global = getTicks();
         if (global != last_global) {
             if (controllerEventTriggered()) {
                 VIDEO_MEMORY[x_pos] = ' ';

@@ -1,7 +1,7 @@
 # include "event.h"
 
 bool controllerEventTriggered() {  // Check if event is triggered
-    if(GetController() == 0) {
+    if(getController() == 0) {
         return false;
     }
     return true;
@@ -15,26 +15,26 @@ bool checkDirectionTrigger(ControllerType controllerType, EventType eventType) {
         case DirectionPad:
             switch (event.direction) {
                 case DirectionUp:
-                    return (GetController() & 0x2) ? 1 : 0;
+                    return (getController() & 0x2) ? 1 : 0;
                 case DirectionDown:
-                    return (GetController() & 0x4) ? 1 : 0;
+                    return (getController() & 0x4) ? 1 : 0;
                 case DirectionRight:
-                    return (GetController() & 0x8) ? 1 : 0;
+                    return (getController() & 0x8) ? 1 : 0;
                 case DirectionLeft:
-                    return (GetController() & 0x1) ? 1 : 0;
+                    return (getController() & 0x1) ? 1 : 0;
             }
             break;
 
         case ToggleButtons:
             switch (event.direction) {
                 case DirectionUp:  // u
-                    return (GetController() & 0x10) ? 1 : 0;
+                    return (getController() & 0x10) ? 1 : 0;
                 case DirectionDown:  // k
-                    return (GetController() & 0x80) ? 1 : 0;
+                    return (getController() & 0x80) ? 1 : 0;
                 case DirectionRight:  // i
-                    return (GetController() & 0x20) ? 1 : 0;
+                    return (getController() & 0x20) ? 1 : 0;
                 case DirectionLeft:  // j
-                    return (GetController() & 0x40) ? 1 : 0;
+                    return (getController() & 0x40) ? 1 : 0;
             }
             break;
     }
