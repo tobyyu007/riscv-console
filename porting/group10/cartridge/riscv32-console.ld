@@ -50,7 +50,8 @@ SECTIONS
         . = ALIGN(4);
         _erodata = .;
     } > FLASH
-
+    _heap_base = MAX(_erodata, MAX(_edata,_esdata));
+    _stack = __stack_top - 4096;
     /* data, initialized variables, to be copied to RAM after reset */
     .data : 
     {

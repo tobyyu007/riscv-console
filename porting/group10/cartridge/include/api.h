@@ -38,7 +38,7 @@ uint32_t setBackgroundControl(uint32_t index, uint32_t palette, uint32_t x,
                               uint32_t y, uint32_t z);
 uint32_t getCMDInterruptCount();
 uint32_t getVideoInterruptCount();
-uint32_t systemCall(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg3,
+uint32_t SystemCall(uint32_t arg0, uint32_t arg1, uint32_t arg2, uint32_t arg3,
                     uint32_t arg4, uint32_t call);
 
 #endif
