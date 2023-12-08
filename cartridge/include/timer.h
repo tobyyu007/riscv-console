@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-uint32_t getTicks(void);
+uint32_t GetTicks(void);
 
 /**
  * @brief Starts the timer.
