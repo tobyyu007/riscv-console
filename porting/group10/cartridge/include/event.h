@@ -5,11 +5,6 @@
 
 #include "api.h"
 
-#define INTERRUPT_ENABLE_REGISTER (*((volatile uint32_t *)0x40000000))
-#define INTERRUPT_PENDING_REGISTER (*((volatile uint32_t *)0x40000004))
-#define VIE_BIT 1
-#define CMIE_BIT 2
-
 typedef enum
 {
     DirectionPad,
@@ -62,35 +57,6 @@ bool controllerEventTriggered();
  */
 bool checkDirectionTrigger(ControllerType controllerType, EventType eventType);
 
-/**
- * Enables the specified interrupt type.
- *
- * @param interruptType The type of interrupt to enable.
- */
-void enableInterrupt(InterruptType interruptType);
-
-/**
- * Checks if the specified interrupt type has been triggered.
- *
- * @param interruptType The type of interrupt to check.
- * @return True if the interrupt has been triggered, false otherwise.
- */
-bool checkInterruptTrigger(InterruptType interruptType);
-
-/**
- * @brief Clears the trigger for the specified interrupt type.
- *
- * This function clears the trigger for the specified interrupt type.
- *
- * @param interruptType The type of interrupt to clear the trigger for.
- */
-void clearInterruptTrigger(InterruptType interruptType);
-
-/**
- * Disables the specified interrupt type.
- *
- * @param interruptType The type of interrupt to disable.
- */
-void disableInterrupt(InterruptType interruptType);
+int interruptCount(InterruptType interruptType);
 
 #endif // EVENT_H

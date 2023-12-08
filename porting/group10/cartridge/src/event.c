@@ -43,52 +43,14 @@ bool checkDirectionTrigger(ControllerType controllerType, EventType eventType) {
 }
 
 
-void enableInterrupt(InterruptType interruptType) {  // Enable interrupt
+int interruptCount(InterruptType interruptType) {  // Count interrupt
     Interrupt interrupt = {interruptType};
     switch (interrupt.interruptType) {
         case VideoInterrupt:
-            INTERRUPT_ENABLE_REGISTER &= (0 << VIE_BIT);
-            break;
+            return getVideoInterruptCount();
         case CMDInterrupt:
-            INTERRUPT_ENABLE_REGISTER &= (0 << CMIE_BIT);
-            break;
-    }
-}
-
-
-bool checkInterruptTrigger(InterruptType interruptType) {  // Check if interrupt is triggered
-    Interrupt interrupt = {interruptType};
-    switch (interrupt.interruptType) {
-        case VideoInterrupt:
-            return (INTERRUPT_PENDING_REGISTER & (1 << VIE_BIT)) ? 1 : 0;
-        case CMDInterrupt:
-            return (INTERRUPT_PENDING_REGISTER & (1 << CMIE_BIT)) ? 1 : 0;
+            return getCMDInterruptCount();
     }
 
-    return false;
-}
-
-
-void clearInterruptTrigger(InterruptType interruptType) {  // Clear interrupt
-    Interrupt interrupt = {interruptType};
-    switch (interrupt.interruptType) {
-        case VideoInterrupt:
-            INTERRUPT_PENDING_REGISTER = (1 << VIE_BIT);
-            break;
-        case CMDInterrupt:
-            INTERRUPT_PENDING_REGISTER = (1 << CMIE_BIT);
-            break;
-    }
-}
-
-void disableInterrupt(InterruptType interruptType) {  // Disable interrupt
-    Interrupt interrupt = {interruptType};
-    switch (interrupt.interruptType) {
-        case VideoInterrupt:
-            INTERRUPT_ENABLE_REGISTER &= (0 << VIE_BIT);
-            break;
-        case CMDInterrupt:
-            INTERRUPT_ENABLE_REGISTER &= (0 << CMIE_BIT);
-            break;
-    }
+    return 0;
 }

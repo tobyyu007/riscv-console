@@ -537,4 +537,6 @@ void initGame()
 
     // Reset game timer
     resetTimer();
+
+    halfTime = false;
 }
