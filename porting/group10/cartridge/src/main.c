@@ -57,7 +57,7 @@ float ballSpeedX = 0;
 float ballSpeedY = 0;
 
 // Game Time limit
-int timeLimit = 10800; // Around 1 minute
+int timeLimit = 300; // Around 1 minute
 bool halfTime = false;
 
 int last_global = 0;
@@ -76,7 +76,6 @@ int main()
     int countdown = 1;
     global = getCurrentTick();
     bool gameStart = false;
-    enableInterrupt(CMDInterrupt);
 
     // Graphics intialization
     displayMode(GRAPHICS_MODE);
@@ -85,6 +84,9 @@ int main()
     yPosMax = screenResolution.height;
     char *Buffer = AllocateMemory(32);
 
+    // Initialize pallete
+    initializePalette();
+    
     // Initialize game
     initGame();
 
@@ -92,22 +94,24 @@ int main()
     fillCanvas();
 
     // create canvas
-    int batCanvasID = createCanvas(LARGE_SPRITE, batCanvas, LARGE_SPRITE_SIZE * LARGE_SPRITE_SIZE);
-    int ballCanvasID = createCanvas(SMALL_SPRITE, ballCanvas, SMALL_SPRITE_SIZE * SMALL_SPRITE_SIZE);
-    int pauseCanvasID = createCanvas(LARGE_SPRITE, pauseCanvas, LARGE_SPRITE_SIZE * LARGE_SPRITE_SIZE);
+    int batCanvasID = createBatCanvas(LARGE_SPRITE, batCanvas, LARGE_SPRITE_SIZE * LARGE_SPRITE_SIZE);
+    int ballCanvasID = createBallCanvas(SMALL_SPRITE, ballCanvas, SMALL_SPRITE_SIZE * SMALL_SPRITE_SIZE);
+    int pauseCanvasID = createPauseCanvas(LARGE_SPRITE, pauseCanvas, LARGE_SPRITE_SIZE * LARGE_SPRITE_SIZE);
 
     // create object
-    int player1BatObjectID = createObject(LARGE_SPRITE, FULLY_OPAQUE, player1X, player1Y, 0, batCanvasID);
-    int player2BatObjectID = createObject(LARGE_SPRITE, FULLY_OPAQUE, player2X, player2Y, 0, batCanvasID);
-    int ballObjectID = createObject(SMALL_SPRITE, FULLY_OPAQUE, pingPongX, pingPongY, 0, ballCanvasID);
-    int pauseObjectID = createObject(LARGE_SPRITE, FULLY_TRANSPARENT, xPosMax / 2 - LARGE_SPRITE_SIZE / 2, yPosMax / 2 - LARGE_SPRITE_SIZE / 2, 0, pauseCanvasID);
+    controlPlayer1(LARGE_SPRITE, FULLY_OPAQUE, player1X, player1Y, 0);
+    controlPlayer2(LARGE_SPRITE, FULLY_OPAQUE, player2X, player2Y, 0);
+    controlBall(SMALL_SPRITE, FULLY_OPAQUE, pingPongX, pingPongY, 0);
+    controlPause(LARGE_SPRITE, FULLY_TRANSPARENT, xPosMax / 2 - LARGE_SPRITE_SIZE / 2, yPosMax / 2 - LARGE_SPRITE_SIZE / 2, 0);
     
     // create background canvas
-    int normalBackgroundCanvasID = createBackgroundCanvas(BACKGROUND_PIXEL, normalBackgroundCanvas, BACKGROUND_PIXEL_SIZE);
-    int halfTimeBackgroundCanvasID = createBackgroundCanvas(BACKGROUND_PIXEL, halfTimeBackgroundCanvas, BACKGROUND_PIXEL_SIZE);
+    int normalBackgroundCanvasID = createBackground1(normalBackgroundCanvas, BACKGROUND_PIXEL_SIZE);
+    int halfTimeBackgroundCanvasID = createBackground2(halfTimeBackgroundCanvas, BACKGROUND_PIXEL_SIZE);
 
     // create background object
-    int backgroundObjectID = createBackgroundObject(BACKGROUND_PIXEL, FULLY_OPAQUE, 0, 0, 0, normalBackgroundCanvasID);
+    controlBackground1(FULLY_OPAQUE, 0, 0, 0);
+
+    int CMDInterruptCount = interruptCount(CMDInterrupt);
 
     while (1)
     {
@@ -145,27 +149,25 @@ int main()
 
             else // Game is started
             {
-                if (checkInterruptTrigger(CMDInterrupt))
+                if (interruptCount(CMDInterrupt) != CMDInterruptCount)
                 {
-                    clearInterruptTrigger(CMDInterrupt);
-                    controlObject(LARGE_SPRITE, FULLY_OPAQUE, xPosMax / 2 - LARGE_SPRITE_SIZE / 2, yPosMax / 2 - LARGE_SPRITE_SIZE / 2, 0, pauseCanvasID, pauseObjectID);
-                    enableInterrupt(VideoInterrupt);
-                    while (checkInterruptTrigger(VideoInterrupt))
+                    controlPause(LARGE_SPRITE, FULLY_OPAQUE, xPosMax / 2 - LARGE_SPRITE_SIZE / 2, yPosMax / 2 - LARGE_SPRITE_SIZE / 2, 0);
+                    CMDInterruptCount = interruptCount(CMDInterrupt);
+                    while (1)
                     {
-                        if (checkInterruptTrigger(CMDInterrupt))
+                        if (interruptCount(CMDInterrupt) == CMDInterruptCount+1)
                         {
-                            clearInterruptTrigger(CMDInterrupt);
-                            clearInterruptTrigger(VideoInterrupt);
-                            disableInterrupt(VideoInterrupt);
                             startTimer();
+                            CMDInterruptCount = interruptCount(CMDInterrupt);
+                            break;
                         }
                     }
-                    controlObject(LARGE_SPRITE, FULLY_TRANSPARENT, xPosMax / 2 - LARGE_SPRITE_SIZE / 2, yPosMax / 2 - LARGE_SPRITE_SIZE / 2, 0, pauseCanvasID, pauseObjectID);
+                    controlPause(LARGE_SPRITE, FULLY_TRANSPARENT, xPosMax / 2 - LARGE_SPRITE_SIZE / 2, yPosMax / 2 - LARGE_SPRITE_SIZE / 2, 0);
                 }
 
                 if (timeElapsed() >= timeLimit / 2 && !halfTime)
                 {
-                    controlBackgroundObject(BACKGROUND_PIXEL, FULLY_OPAQUE, 0, 0, 0, halfTimeBackgroundCanvasID, backgroundObjectID);
+                    controlBackground2(FULLY_OPAQUE, 0, 0, 0);
                     halfTime = true;
                 }
 
@@ -201,8 +203,8 @@ int main()
                         }
                     }
                     // control players
-                    controlObject(LARGE_SPRITE, FULLY_OPAQUE, player1X, player1Y, 0, batCanvasID, player1BatObjectID);
-                    controlObject(LARGE_SPRITE, FULLY_OPAQUE, player2X, player2Y, 0, batCanvasID, player2BatObjectID);
+                    controlPlayer1(LARGE_SPRITE, FULLY_OPAQUE, player1X, player1Y, 0);
+                    controlPlayer2(LARGE_SPRITE, FULLY_OPAQUE, player2X, player2Y, 0);
                 }
 
                 // Check if the ball touches the upper or lower edge of the screen
@@ -249,19 +251,18 @@ int main()
                     showTextToLine(Buffer, SCREEN_ROWS / 2 + 4);
                     displayMode(TEXT_MODE);
 
-                    enableInterrupt(VideoInterrupt);
-                    while (checkInterruptTrigger(VideoInterrupt))
+                    while (1)
                     {
                         // Play again
                         if (checkDirectionTrigger(DirectionPad, DirectionRight) && checkDirectionTrigger(ToggleButtons, DirectionLeft))
                         {
                             // Re-Initialize game
                             initGame();
-                            controlBackgroundObject(BACKGROUND_PIXEL, FULLY_OPAQUE, 0, 0, 0, normalBackgroundCanvasID, backgroundObjectID);
+                            controlBackground2(FULLY_TRANSPARENT, 0, 0, 0);
+                            controlBackground1(FULLY_OPAQUE, 0, 0, 0);
                             startTimer();
                             displayMode(GRAPHICS_MODE);
-                            clearInterruptTrigger(VideoInterrupt);
-                            disableInterrupt(VideoInterrupt);
+                            break;
                         }
                     }
                 }
@@ -269,8 +270,7 @@ int main()
                 // Update ball location
                 pingPongX += ballSpeedX;
                 pingPongY += ballSpeedY;
-                controlObject(SMALL_SPRITE, FULLY_OPAQUE, pingPongX, pingPongY, 0, ballCanvasID, ballObjectID);
-
+                controlBall(SMALL_SPRITE, FULLY_OPAQUE, pingPongX, pingPongY, 0);
                 last_global = global;
             }
         }
@@ -278,7 +278,7 @@ int main()
         if (!countdown)
         {
             global++;
-            countdown = 10000;
+            countdown = 8000;
         }
     }
     return 0;
@@ -381,24 +381,6 @@ void fillCanvas()
             halfTimeBackgroundCanvas[y * BACKGROUND_PIXEL_WIDTH + x] = RASPBERRY;
         }
     }
-    // for(int y = 0; y < TILE_ENTRY_HEIGHT; y++){
-    //     for(int x = 0; x < TILE_ENTRY_WIDTH; x++){
-
-    //         backgroundTileEntry0[y*TILE_ENTRY_WIDTH+x] = 1;
-    //         backgroundTileEntry1[y*TILE_ENTRY_WIDTH+x] = 7;
-    //         backgroundTileEntry2[y*TILE_ENTRY_WIDTH+x] = 25;
-    //     }
-    // }
-    // for(int y = 0; y < BACKGROUND_TILE_HEIGHT; y++){
-    //     for(int x = 0; x < BACKGROUND_TILE_WIDTH; x++){
-    //         if(y%2==0){
-    //             if(x%2==0) backgroundTile[y*BACKGROUND_TILE_WIDTH+x] = 2;
-    //         }
-    //         else{
-    //             if(x%2==1) backgroundTile[y*BACKGROUND_TILE_WIDTH+x] = 2;
-    //         }
-    //     }
-    // }
 }
 
 bool checkCollision(int playerTopLeftX, int playerTopLeftY, int pingPongX, int pingPongY, int rectangleWidth, int rectangleHeight, int ballRadius)
