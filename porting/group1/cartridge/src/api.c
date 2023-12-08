@@ -98,7 +98,7 @@ uint32_t setGraphicsMode() {
 //     systemcall(0, 0, 0, 0, 0, CHANGE_SMALL_SPRITE_COLOR);
 // }
 
-int16_t drawSmallSprite(uint32_t sprite_control_structure, uint8_t sprite_color) {
+uint16_t drawSmallSprite(uint32_t sprite_control_structure, uint8_t sprite_color) {
     return (int16_t)systemcall(sprite_control_structure, (uint8_t) sprite_color, 0, 0, 0, DRAW_SPRITE);
 }
 

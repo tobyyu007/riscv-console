@@ -152,9 +152,9 @@ uint32_t MemCpy(unsigned char* dest, unsigned char* src, int count);
 
 // API 8 - sprite management
 uint32_t setGraphicMode();
-uint32_t setSmallColorPaletteA(uint32_t palette_number, uint32_t color, uint32_t entry_number);
+uint32_t setSmallColorPalette(uint32_t palette_number, uint32_t color, uint32_t entry_number);
 void changeSmallSpriteColor();
-uint16_t drawSmallSpriteA(uint32_t sprite_control_structure, uint8_t sprite_color);
+uint16_t drawSmallSprite(uint32_t sprite_control_structure, uint8_t sprite_color);
 void eraseSmallSprite(uint8_t slot);
 void moveSmallSprite(uint8_t slot, uint32_t sprite_control_structure, uint8_t sprite_color);
 int setMediumColorPalette(uint32_t palette_number, uint32_t color, uint32_t entry_number);
