@@ -102,30 +102,5 @@ typedef enum {
     FULLY_TRANSPARENT = 3 // Palette 3
 } OpacityLevel;
 
-typedef struct {
-    uint32_t palette_number;
-    uint32_t color;
-    uint32_t entry_number;
-} PaletteParams;
 
-PaletteParams smallParams[] = {
-    {0, 0x00000000, NO_COLOR},
-    {0, 0xFFFF6600, ORANGE},
-};
-
-PaletteParams largeParams[] = {
-    {0, 0x00000000, NO_COLOR},
-    {0, 0xFFFF6600, ORANGE},
-    {0, 0xFFFFFFFF, WHITE},
-    {0, 0xFFFFFF00, YELLOW},
-    {3, 0x00000000, NO_COLOR},
-    {3, 0x00000000, ORANGE},
-    {3, 0x00000000, WHITE},
-    {3, 0x00000000, YELLOW}
-};
-
-PaletteParams backgroundParams[] = {
-    {0, 0x00000000, BLACK},
-    {1, 0xFFFF6600, RASPBERRY},
-};
 #endif 

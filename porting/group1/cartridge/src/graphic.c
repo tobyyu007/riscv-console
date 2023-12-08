@@ -8,6 +8,8 @@
 volatile uint32_t *MODE_REGISTER = (volatile uint32_t *)(MODE_CONTROL_REGISTER);
 volatile char *VIDEO_MEMORY = (volatile char *)(0x500F4800);
 
+
+
 #define SCREEN_COLS 64
 #define SCREEN_ROWS 36
 
@@ -16,7 +18,7 @@ void displayMode(DisplayMode mode)
 {
     if (mode == GRAPHICS_MODE)
     {
-        setGraphicMode();
+        setGraphicsMode();
     }
     else if (mode == TEXT_MODE)
     {
@@ -109,16 +111,6 @@ void controlBall(SpriteSize size, int palette, int x, int y, int z)
     ControlBase[index] = (((uint32_t)0) << 24) | (((uint32_t)z) << 21) | (((uint32_t)y + 16) << 12) | (((uint32_t)x + 16) << 2) | (palette & 0x3);
 }
 
-// getWindowSize() is a function that returns the size of the window in pixels
-
-struct windowSize getWindowSize() {
-    struct windowSize size;
-    size.width = 512;
-    size.height = 288;
-    return size;
-}
-
-
 void clearTextData() {
     for (int i = 0; i < SCREEN_ROWS * SCREEN_COLS; ++i) {
         VIDEO_MEMORY[i] = ' ';  // ASCII value for space
@@ -146,7 +138,29 @@ void showTextToLine(const char* text, int line) {
     }
 }
 
-void colorInitialization() {
+PaletteParams smallParams[] = {
+    {0, 0x00000000, NO_COLOR},
+    {0, 0xFFFF6600, ORANGE},
+};
+
+PaletteParams largeParams[] = {
+    {0, 0x00000000, NO_COLOR},
+    {0, 0xFFFF6600, ORANGE},
+    {0, 0xFFFFFFFF, WHITE},
+    {0, 0xFFFFFF00, YELLOW},
+    {3, 0x00000000, NO_COLOR},
+    {3, 0x00000000, ORANGE},
+    {3, 0x00000000, WHITE},
+    {3, 0x00000000, YELLOW}
+};
+
+PaletteParams backgroundParams[] = {
+    {0, 0x00000000, BLACK},
+    {1, 0xFFFF6600, RASPBERRY},
+};
+
+
+void initializePalette() {
     int i;
     int j;
     int k;
@@ -160,6 +174,6 @@ void colorInitialization() {
         setLargeColorPalette(largeParams[j].palette_number, largeParams[j].color, largeParams[j].entry_number);
     }
     for (k = 0; k < numBackgroundParams; k++) {
-        setBackgroundPalette(backgroundParams[k].palette_number, backgroundParams[k].color, backgroundParams[k].entry_number);
+        setBackgroundColorPalette(backgroundParams[k].palette_number, backgroundParams[k].color, backgroundParams[k].entry_number);
     }
 }

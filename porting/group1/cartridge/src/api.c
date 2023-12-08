@@ -22,17 +22,17 @@ uint32_t MemCpy(unsigned char* dest, unsigned char* src, int count) {
     return systemcall((uint32_t)dest, (uint32_t) src, (uint32_t) count, 0, 0, MEMORY_COPY);
 }
 
-uint32_t *operation_setting(char keyboard[]) {
-    return systemcall((uint32_t)keyboard, 0, 0, 0, 0, OPERATION_SETTING);
-}
+// uint32_t operation_setting(char keyboard[]) {
+//     return systemcall((uint32_t)keyboard, 0, 0, 0, 0, OPERATION_SETTING);
+// }
 
 uint32_t physics_simulation(char *phys) {
     return systemcall((uint32_t)phys, 0, 0, 0, 0, PHYSICS_SIMULATION);
 }
 
-uint32_t *security_check(char files[]) {
-    return systemcall((uint32_t)files, 0, 0, 0, 0, SECURITY_CHECK);
-}
+// uint32_t security_check(char files[]) {
+//     return systemcall((uint32_t)files, 0, 0, 0, 0, SECURITY_CHECK);
+// }
 
 uint32_t import_export(char *pck, char *file) {
     return systemcall((uint32_t)pck, (uint32_t)file, 0, 0, 0, IMPORT_EXPORT);
@@ -78,25 +78,25 @@ uint32_t setGraphicsMode() {
     return systemcall(0, 0, 0, 0, 0, SET_GRAPHIC_MODE);
 }
 
-// int setMediumColorPalette(uint32_t palette_number, uint32_t color, uint32_t entry_number) {
-//     return systemcall(palette_number, color, entry_number, 0, 0, SET_MEDIUM_COLOR_PALETTE);
-// }
+int setMediumColorPalette(uint32_t palette_number, uint32_t color, uint32_t entry_number) {
+    return systemcall(palette_number, color, entry_number, 0, 0, SET_MEDIUM_COLOR_PALETTE);
+}
 
-// int setLargeColorPalette(uint32_t palette_number, uint32_t color, uint32_t entry_number) {
-//     return systemcall(palette_number, color, entry_number, 0, 0, SET_LARGE_COLOR_PALETTE);
-// }
+int setLargeColorPalette(uint32_t palette_number, uint32_t color, uint32_t entry_number) {
+    return systemcall(palette_number, color, entry_number, 0, 0, SET_LARGE_COLOR_PALETTE);
+}
 
-// int setBackgroundColorPalette(uint32_t palette_number, uint32_t color, uint32_t entry_number) {
-//     return systemcall(palette_number, color, entry_number, 0, 0, SET_BACKGROUND_COLOR_PALETTE);
-// }
+int setBackgroundColorPalette(uint32_t palette_number, uint32_t color, uint32_t entry_number) {
+    return systemcall(palette_number, color, entry_number, 0, 0, SET_BACKGROUND_COLOR_PALETTE);
+}
 
-// int changeBackgroundColorPalette() {
-//     return systemcall(0, 0, 0, 0, 0, CHANGE_BACKGROUND_COLOR_PALETTE);
-// }
+int changeBackgroundColorPalette() {
+    return systemcall(0, 0, 0, 0, 0, CHANGE_BACKGROUND_COLOR_PALETTE);
+}
 
-// void changeSmallSpriteColor() {
-//     systemcall(0, 0, 0, 0, 0, CHANGE_SMALL_SPRITE_COLOR);
-// }
+void changeSmallSpriteColor() {
+    systemcall(0, 0, 0, 0, 0, CHANGE_SMALL_SPRITE_COLOR);
+}
 
 uint16_t drawSmallSprite(uint32_t sprite_control_structure, uint8_t sprite_color) {
     return (int16_t)systemcall(sprite_control_structure, (uint8_t) sprite_color, 0, 0, 0, DRAW_SPRITE);
