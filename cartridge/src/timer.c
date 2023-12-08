@@ -5,18 +5,18 @@ int timerEnd = 0;
 
 void startTimer()
 {
-    timerStart = getTicks();
+    timerStart = GetTicks();
 }
 
 void endTimer()
 {
-    timerEnd = getTicks();
+    timerEnd = GetTicks();
 }
 
 uint32_t timeElapsed()
 {
     if (timerEnd == 0) {
-        return (getTicks()-timerStart);
+        return (GetTicks()-timerStart);
     }
     else{
         return (timerEnd-timerStart);
@@ -30,5 +30,5 @@ void resetTimer()
 }
 
 uint32_t getCurrentTick(){
-    return getTicks();
+    return GetTicks();
 }
