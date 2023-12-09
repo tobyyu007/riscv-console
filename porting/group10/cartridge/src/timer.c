@@ -1,22 +1,22 @@
-# include "group2.h"
+#include "timer.h"
 
 int timerStart = 0;
 int timerEnd = 0;
 
 void startTimer()
 {
-    timerStart = GetTicks();
+    timerStart = getTicks();
 }
 
 void endTimer()
 {
-    timerEnd = GetTicks();
+    timerEnd = getTicks();
 }
 
 uint32_t timeElapsed()
 {
     if (timerEnd == 0) {
-        return (GetTicks()-timerStart);
+        return (getTicks()-timerStart);
     }
     else{
         return (timerEnd-timerStart);
@@ -30,5 +30,5 @@ void resetTimer()
 }
 
 uint32_t getCurrentTick(){
-    return GetTicks();
+    return getTicks();
 }

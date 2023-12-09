@@ -3,7 +3,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-uint32_t GetTicks(void);
+#include "api.h"
+
 
 /**
  * @brief Starts the timer.
