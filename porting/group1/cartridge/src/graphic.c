@@ -6,7 +6,7 @@
 #include "colors_index.h"
 
 volatile uint32_t *MODE_REGISTER = (volatile uint32_t *)(MODE_CONTROL_REGISTER);
-volatile char *VIDEO_MEMORY = (volatile char *)(0x500F4800);
+volatile char *VIDEO_MEMORY = (volatile char *)(TEXT_DATA);
 
 
 
@@ -36,14 +36,14 @@ struct windowSize getWindowSize()
 
 int createBackground1(uint8_t *buffer, uint32_t bufferSize)
 {
-    volatile uint8_t *spriteBase = (volatile uint8_t *)0x50000000;
+    volatile uint8_t *spriteBase = (volatile uint8_t *)BACKGROUND_DATA;
     memcpy((void *)(spriteBase + 0 * 0x24000), buffer, bufferSize);
     return 0;
 }
 
 int createBackground2(uint8_t *buffer, uint32_t bufferSize)
 {
-    volatile uint8_t *spriteBase = (volatile uint8_t *)0x50000000;
+    volatile uint8_t *spriteBase = (volatile uint8_t *)BACKGROUND_DATA;
     memcpy((void *)(spriteBase + 1 * 0x24000), buffer, bufferSize);
     return 1;
 }
@@ -51,34 +51,34 @@ int createBackground2(uint8_t *buffer, uint32_t bufferSize)
 void controlBackground1(int palette, int x, int y, int z)
 {
     int index = 0;
-    volatile uint32_t *BackgroundBase = (volatile uint32_t *)0x500F5A00;
+    volatile uint32_t *BackgroundBase = (volatile uint32_t *)BACKGROUND_CONTROLS;
     BackgroundBase[0] = (((uint32_t)0) << 31) | (((uint32_t)index) << 29) | (((uint32_t)z) << 22) | (((uint32_t)y + 288) << 12) | (((uint32_t)x + 512) << 2) | (palette & 0x3);
 }
 
 void controlBackground2(int palette, int x, int y, int z)
 {
     int index = 1;
-    volatile uint32_t *BackgroundBase = (volatile uint32_t *)0x500F5A00;
+    volatile uint32_t *BackgroundBase = (volatile uint32_t *)BACKGROUND_CONTROLS;
     BackgroundBase[1] = (((uint32_t)0) << 31) | (((uint32_t)index) << 29) | (((uint32_t)z) << 22) | (((uint32_t)y + 288) << 12) | (((uint32_t)x + 512) << 2) | (palette & 0x3);
 }
 
 int createBatCanvas(SpriteSize size, uint8_t *buffer, uint32_t bufferSize)
 {
-    volatile uint8_t *spriteBase = (volatile uint8_t *)0x50090000;
+    volatile uint8_t *spriteBase = (volatile uint8_t *)LARGE_SPRITE_DATA_0;
     memcpy((void *)(spriteBase + 0 * 0x1000), buffer, bufferSize);
     return 0;
 }
 
 int createPauseCanvas(SpriteSize size, uint8_t *buffer, uint32_t bufferSize)
 {
-    volatile uint8_t *spriteBase = (volatile uint8_t *)0x50090000;
+    volatile uint8_t *spriteBase = (volatile uint8_t *)LARGE_SPRITE_DATA_0;
     memcpy((void *)(spriteBase + 1 * 0x1000), buffer, bufferSize);
     return 1;
 }
 
 int createBallCanvas(SpriteSize size, uint8_t *buffer, uint32_t bufferSize)
 {
-    volatile uint8_t *spriteBase = (volatile uint8_t *)0x500E0000;
+    volatile uint8_t *spriteBase = (volatile uint8_t *)SMALL_SPRITE_DATA_0;
     memcpy((void *)(spriteBase + 0 * 0x1000), buffer, bufferSize);
     return 0;
 }
@@ -86,28 +86,28 @@ int createBallCanvas(SpriteSize size, uint8_t *buffer, uint32_t bufferSize)
 void controlPlayer1(SpriteSize size, int palette, int x, int y, int z)
 {
     int index = 0;
-    volatile uint32_t *ControlBase = (volatile uint32_t *)0x500F5B00;
+    volatile uint32_t *ControlBase = (volatile uint32_t *)LARGE_SPRITE_CONTROLS_0;
     ControlBase[index] = (((uint32_t)0) << 24) | (((uint32_t)z) << 21) | (((uint32_t)y + 64) << 12) | (((uint32_t)x + 64) << 2) | (palette & 0x3);
 }
 
 void controlPlayer2(SpriteSize size, int palette, int x, int y, int z)
 {
     int index = 1;
-    volatile uint32_t *ControlBase = (volatile uint32_t *)0x500F5B00;
+    volatile uint32_t *ControlBase = (volatile uint32_t *)LARGE_SPRITE_CONTROLS_0;
     ControlBase[index] = (((uint32_t)0) << 24) | (((uint32_t)z) << 21) | (((uint32_t)y + 64) << 12) | (((uint32_t)x + 64) << 2) | (palette & 0x3);
 }
 
 void controlPause(SpriteSize size, int palette, int x, int y, int z)
 {
     int index = 2;
-    volatile uint32_t *ControlBase = (volatile uint32_t *)0x500F5B00;
+    volatile uint32_t *ControlBase = (volatile uint32_t *)LARGE_SPRITE_CONTROLS_0;
     ControlBase[index] = (((uint32_t)1) << 24) | (((uint32_t)z) << 21) | (((uint32_t)y + 64) << 12) | (((uint32_t)x + 64) << 2) | (palette & 0x3);
 }
 
 void controlBall(SpriteSize size, int palette, int x, int y, int z)
 {
     int index = 0;
-    volatile uint32_t *ControlBase = (volatile uint32_t *)0x500F6300;
+    volatile uint32_t *ControlBase = (volatile uint32_t *)SMALL_SPRITE_CONTROLS;
     ControlBase[index] = (((uint32_t)0) << 24) | (((uint32_t)z) << 21) | (((uint32_t)y + 16) << 12) | (((uint32_t)x + 16) << 2) | (palette & 0x3);
 }
 
@@ -155,10 +155,11 @@ PaletteParams largeParams[] = {
 };
 
 PaletteParams backgroundParams[] = {
-    {0, 0x00000000, BLACK},
-    {1, 0xFFFF6600, RASPBERRY},
+    {0, 0xFF000000, BLACK},
+    {0, 0xFFE30B5C, RASPBERRY},
+    {3, 0x00000000, BLACK},
+    {3, 0x00000000, RASPBERRY},
 };
-
 
 void initializePalette() {
     int i;

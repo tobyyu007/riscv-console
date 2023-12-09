@@ -111,7 +111,7 @@ int main()
 
     // create background object
     controlBackground1(FULLY_OPAQUE, 0, 0, 0);
-
+ 
     while (1)
     {
         if (global != last_global)
