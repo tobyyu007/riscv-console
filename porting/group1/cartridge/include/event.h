@@ -3,6 +3,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "api.h"
+
 typedef enum
 {
     DirectionPad,
@@ -37,25 +39,6 @@ typedef struct
 {
     InterruptType interruptType;
 } Interrupt;
-
-uint32_t checkControllerStatus(void);
-uint32_t DirectionPadUp(void);
-uint32_t DirectionPadDown(void);
-uint32_t DirectionPadRight(void);
-uint32_t DirectionPadLeft(void);
-uint32_t ToggleButtonsUp(void);
-uint32_t ToggleButtonsRight(void);
-uint32_t ToggleButtonsLeft(void);
-uint32_t ToggleButtonsDown(void);
-
-uint32_t EnableCMDInterrupt(void);
-uint32_t CMDInterrupted(void);
-uint32_t DisableCMDInterrupt(void);
-uint32_t EnableVideoInterrupt(void);
-uint32_t VideoInterrupted(void);
-uint32_t DisableVideoInterrupt(void);
-uint32_t ClearVideoInterrupt(void);
-uint32_t ClearCMDInterrupt(void);
 
 
 /**
