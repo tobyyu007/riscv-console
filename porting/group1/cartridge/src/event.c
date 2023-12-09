@@ -50,13 +50,14 @@ bool checkDirectionTrigger(ControllerType controllerType, EventType eventType)
 void enableInterrupt(InterruptType interruptType)
 { // Enable interrupt
     Interrupt interrupt = {interruptType};
+    volatile unsigned int* interruptEnableRegister = (volatile unsigned int*)INTERRUPT_ENABLE_REGISTER;
     switch (interrupt.interruptType)
     {
     case VideoInterrupt:
-        INTERRUPT_ENABLE_REGISTER &= (0 << 1);
+        *interruptEnableRegister &= (0 << 1);
         break;
     case CMDInterrupt:
-        INTERRUPT_ENABLE_REGISTER &= (0 << 2);
+        *interruptEnableRegister &= (0 << 2);
         break;
     }
 }
@@ -64,12 +65,13 @@ void enableInterrupt(InterruptType interruptType)
 bool checkInterruptTrigger(InterruptType interruptType)
 { // Check if interrupt is triggered
     Interrupt interrupt = {interruptType};
+    volatile unsigned int* interruptPendingRegister = (volatile unsigned int*)INTERRUPT_PENDING_REGISTER;
     switch (interrupt.interruptType)
     {
     case VideoInterrupt:
-        return (INTERRUPT_PENDING_REGISTER & (1 << 1)) ? 1 : 0;
+        return (*interruptPendingRegister & (1 << 1)) ? 1 : 0;
     case CMDInterrupt:
-        return (INTERRUPT_PENDING_REGISTER & (1 << 2)) ? 1 : 0;
+        return (*interruptPendingRegister & (1 << 2)) ? 1 : 0;
     }
 
     return false;
@@ -78,13 +80,14 @@ bool checkInterruptTrigger(InterruptType interruptType)
 void clearInterruptTrigger(InterruptType interruptType)
 { // Clear interrupt
     Interrupt interrupt = {interruptType};
+    volatile unsigned int* interruptPendingRegister = (volatile unsigned int*)INTERRUPT_PENDING_REGISTER;
     switch (interrupt.interruptType)
     {
     case VideoInterrupt:
-        INTERRUPT_PENDING_REGISTER = (1 << 1);
+        *interruptPendingRegister = (1 << 1);
         break;
     case CMDInterrupt:
-        INTERRUPT_PENDING_REGISTER = (1 << 2);
+        *interruptPendingRegister = (1 << 2);
         break;
     }
 }
@@ -92,13 +95,14 @@ void clearInterruptTrigger(InterruptType interruptType)
 void disableInterrupt(InterruptType interruptType)
 { // Disable interrupt
     Interrupt interrupt = {interruptType};
+    volatile unsigned int* interruptEnableRegister = (volatile unsigned int*)INTERRUPT_ENABLE_REGISTER;
     switch (interrupt.interruptType)
     {
     case VideoInterrupt:
-        INTERRUPT_ENABLE_REGISTER &= (0 << 1);
+        *interruptEnableRegister &= (0 << 1);
         break;
     case CMDInterrupt:
-        INTERRUPT_ENABLE_REGISTER &= (0 << 2);
+        *interruptEnableRegister &= (0 << 2);
         break;
     }
 }
