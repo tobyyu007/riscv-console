@@ -43,8 +43,8 @@
 #define MEDIUM_SPRITE_PALETTE_0 0x500F2000
 #define SMALL_SPRITE_PALETTE_0 0x500F3000
 
-#define INTERRUPT_ENABLE_REGISTER (*((volatile uint32_t *)0x40000000))
-#define INTERRUPT_PENDING_REGISTER (*((volatile uint32_t *)0x40000004))
+#define INTERRUPT_ENABLE_REGISTER 0x40000000
+#define INTERRUPT_PENDING_REGISTER 0x40000004
 #define MACHINE_TIME 0x40000008
 #define MACHINE_TIME_COMPARE 0x40000010
 #define MULTI_BUTTON_CONTROLLER_STATUS_REGISTER 0x40000018
@@ -151,10 +151,10 @@ uint32_t MemSet(unsigned char* dest, unsigned char value, int size);
 uint32_t MemCpy(unsigned char* dest, unsigned char* src, int count);
 
 // API 8 - sprite management
-uint32_t setGraphicsMode();
-uint32_t setSmallColorPalette(uint32_t palette_number, uint32_t color, uint32_t entry_number);
+uint32_t setGraphicMode();
+uint32_t setSmallColorPaletteA(uint32_t palette_number, uint32_t color, uint32_t entry_number);
 void changeSmallSpriteColor();
-uint16_t drawSmallSprite(uint32_t sprite_control_structure, uint8_t sprite_color);
+uint16_t drawSmallSpriteA(uint32_t sprite_control_structure, uint8_t sprite_color);
 void eraseSmallSprite(uint8_t slot);
 void moveSmallSprite(uint8_t slot, uint32_t sprite_control_structure, uint8_t sprite_color);
 int setMediumColorPalette(uint32_t palette_number, uint32_t color, uint32_t entry_number);
