@@ -227,7 +227,7 @@ int main()
                 }
 
                 // Game Ends
-                if (pingPongX <= 0 || pingPongX + ballRadius * 2 >= xPosMax || timeElapsed() / 100 >= timeLimit)
+                if (pingPongX <= 0 || pingPongX + ballRadius * 2 >= xPosMax || timeElapsed() >= timeLimit)
                 {
                     if (pingPongX <= 0)
                     {
