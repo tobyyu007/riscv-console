@@ -57,7 +57,7 @@ float ballSpeedX = 0;
 float ballSpeedY = 0;
 
 // Game Time limit
-int timeLimit = 300; // Around 1 minute
+int timeLimit = 50; // Around 1 minute
 bool halfTime = false;
 
 int last_global = 0;
@@ -152,11 +152,14 @@ int main()
                 {
                     controlPause(LARGE_SPRITE, FULLY_OPAQUE, xPosMax / 2 - LARGE_SPRITE_SIZE / 2, yPosMax / 2 - LARGE_SPRITE_SIZE / 2, 0);
                     clearInterruptTrigger(CMDInterrupt);
-                    while (1)
+                    enableInterrupt(VideoInterrupt);
+                    while (checkInterruptTrigger(VideoInterrupt))
                     {
                         if (checkInterruptTrigger(CMDInterrupt))
                         {
                             clearInterruptTrigger(CMDInterrupt);
+                            clearInterruptTrigger(VideoInterrupt);
+                            disableInterrupt(VideoInterrupt);
                             break;
                         }
                     }
@@ -249,6 +252,7 @@ int main()
                     showTextToLine(Buffer, SCREEN_ROWS / 2 + 4);
                     displayMode(TEXT_MODE);
 
+                    enableInterrupt(VideoInterrupt);
                     while (checkInterruptTrigger(VideoInterrupt))
                     {
                         // Play again
