@@ -57,7 +57,7 @@ float ballSpeedX = 0;
 float ballSpeedY = 0;
 
 // Game Time limit
-int timeLimit = 50; // Around 1 minute
+int timeLimit = 10800; // Around 1 minute
 bool halfTime = false;
 
 int last_global = 0;
@@ -281,7 +281,7 @@ int main()
         if (!countdown)
         {
             global++;
-            countdown = 8000;
+            countdown = 10000;
         }
     }
     return 0;
