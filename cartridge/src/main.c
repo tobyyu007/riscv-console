@@ -57,7 +57,7 @@ float ballSpeedX = 0;
 float ballSpeedY = 0;
 
 // Game Time limit
-int timeLimit = 10800; // Around 1 minute
+int timeLimit = 5400; // Around 1 minute (10800)
 bool halfTime = false;
 
 int last_global = 0;
@@ -224,7 +224,7 @@ int main()
                 }
 
                 // Game Ends
-                if (pingPongX <= 0 || pingPongX + ballRadius * 2 >= xPosMax || timeElapsed() / 100 >= timeLimit)
+                if (pingPongX <= 0 || pingPongX + ballRadius * 2 >= xPosMax || timeElapsed() >= timeLimit)
                 {
                     if (pingPongX <= 0)
                     {

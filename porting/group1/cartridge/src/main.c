@@ -76,6 +76,7 @@ int main()
     int countdown = 1;
     global = getCurrentTick();
     bool gameStart = false;
+    enableInterrupt(CMDInterrupt);
 
     // Graphics intialization
     displayMode(GRAPHICS_MODE);
@@ -110,9 +111,7 @@ int main()
 
     // create background object
     controlBackground1(FULLY_OPAQUE, 0, 0, 0);
-
-    int CMDInterruptCount = interruptCount(CMDInterrupt);
-
+ 
     while (1)
     {
         if (global != last_global)
@@ -148,17 +147,19 @@ int main()
             }
 
             else // Game is started
-            {
-                if (interruptCount(CMDInterrupt) != CMDInterruptCount)
+            {   
+                if (checkInterruptTrigger(CMDInterrupt))
                 {
                     controlPause(LARGE_SPRITE, FULLY_OPAQUE, xPosMax / 2 - LARGE_SPRITE_SIZE / 2, yPosMax / 2 - LARGE_SPRITE_SIZE / 2, 0);
-                    CMDInterruptCount = interruptCount(CMDInterrupt);
-                    while (1)
+                    clearInterruptTrigger(CMDInterrupt);
+                    enableInterrupt(VideoInterrupt);
+                    while (checkInterruptTrigger(VideoInterrupt))
                     {
-                        if (interruptCount(CMDInterrupt) == CMDInterruptCount+1)
+                        if (checkInterruptTrigger(CMDInterrupt))
                         {
-                            startTimer();
-                            CMDInterruptCount = interruptCount(CMDInterrupt);
+                            clearInterruptTrigger(CMDInterrupt);
+                            clearInterruptTrigger(VideoInterrupt);
+                            disableInterrupt(VideoInterrupt);
                             break;
                         }
                     }
@@ -251,7 +252,8 @@ int main()
                     showTextToLine(Buffer, SCREEN_ROWS / 2 + 4);
                     displayMode(TEXT_MODE);
 
-                    while (1)
+                    enableInterrupt(VideoInterrupt);
+                    while (checkInterruptTrigger(VideoInterrupt))
                     {
                         // Play again
                         if (checkDirectionTrigger(DirectionPad, DirectionRight) && checkDirectionTrigger(ToggleButtons, DirectionLeft))
@@ -262,7 +264,8 @@ int main()
                             controlBackground1(FULLY_OPAQUE, 0, 0, 0);
                             startTimer();
                             displayMode(GRAPHICS_MODE);
-                            break;
+                            clearInterruptTrigger(VideoInterrupt);
+                            disableInterrupt(VideoInterrupt);
                         }
                     }
                 }
@@ -522,3 +525,4 @@ void initGame()
 
     halfTime = false;
 }
+
