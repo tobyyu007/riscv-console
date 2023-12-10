@@ -9,14 +9,6 @@ To showcase the strengths of our operating system, we have implemented the class
 |<img width="224" alt="image" src="https://github.com/tobyyu007/riscv-console/assets/39978173/4498997d-5f28-4b83-ab21-7f265eacff28">| <img width="224" alt="image" src="https://github.com/tobyyu007/riscv-console/assets/39978173/8db85f54-fcf7-4bdb-a8a0-87fcfad9a053">|
 | Game Ends with player wins | Game Ends with over time                 |
 
-
-## Reference Documents
-
-* [Simulator Documentation](docs/simulator.md)
-* [Hardware Documentation](docs/hardware.md)
-* [Autorunner Documentation](docs/autorunner.md)
-* [Troubleshooting](docs/troubleshooting.md)
-
 ## Features
 - **Clear Entry Instructions:** Upon starting, players receive concise instructions about controls and the time limit, ensuring an even playing field for all.
 - **Multi-button controller support:** Our multi-button controller support allows for two-player gameplay. The CMD button also serves to pause the game.
@@ -81,3 +73,10 @@ The simulator can also be run in debug mode by adding the `-d` option to the `ri
 ![](docs/img/console-screenshot-debug.png)
 
 The `Run` button will run the system until it is clicked again, or until a breakpoint is hit. The `Step` button will execute a single instruction, and the `Clear` button will clear all breakpoints. Breakpoints can be toggled by double clicking the associated instruction. The `FW`, `CTR`, `CS`, and `VID` buttons will jump to the Firmware, Cartridge, Chipset, and Video Memory base addresses. The `GP` and `SP` buttons jump to the memory specified by the `gp` and `sp` registers.
+
+## Reference Documents
+
+* [Simulator Documentation](docs/simulator.md)
+* [Hardware Documentation](docs/hardware.md)
+* [Autorunner Documentation](docs/autorunner.md)
+* [Troubleshooting](docs/troubleshooting.md)
