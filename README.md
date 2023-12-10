@@ -1,35 +1,35 @@
 
-# RISC-V Console Simulator
+# Pong Game
 
-This project is a simulator for a hypothetical RISC-V based game console. The repository provides Dockerfiles to build the necessary RISC-V toolchain for firmware and/or "game" development. The simulator was developed for use in UC Davis' Computer Science courses; however, any other educators are highly encouraged to take this repository and modify it to meet the needs of your class.
+To showcase the strengths of our operating system, we have implemented the classic game, Pong, as our app. In this game, two players control paddles to bounce a ball back and forth. 
 
-## Table of Contents
+## Reference Documents
 
-* [RISC-V Console Simulator](#risc-v-console-simulator)
-    * [Table of Contents](#table-of-contents)
-    * [Getting Started](#getting-started)
-    * [Simulator Documentation](docs/simulator.md)
-    * [Hardware Documentation](docs/hardware.md)
-    * [Autorunner Documentation](docs/autorunner.md)
-    * [Troubleshooting](docs/troubleshooting.md)
+* [Simulator Documentation](docs/simulator.md)
+* [Hardware Documentation](docs/hardware.md)
+* [Autorunner Documentation](docs/autorunner.md)
+* [Troubleshooting](docs/troubleshooting.md)
+
+## Features
+- **Clear Entry Instructions:** Upon starting, players receive concise instructions about controls and the time limit, ensuring an even playing field for all.
+- **Multi-button controller support:** Our multi-button controller support allows for two-player gameplay. The CMD button also serves to pause the game.
+- **Game timer:** The game timer adds an exciting element, challenging players to outdo each other in shorter timeframes.
+- **Pause Functionality (Video interrupt):** Using the OS's video interrupt feature, the game can be paused and resumed seamlessly, enhancing the intensity of play.
+- **Engaging Graphics:** Our physics engine brings the game to life with responsive paddles and a ball that reacts realistically upon impacts. The pause icon and changing background further enrich the visual experience.
+
+## Game Control and Rules
+In our Pong game, players aim to block the ball with their paddles and score against the opponent. One player can control their paddle using the 'w' and 'x' keys of the multi-button controller, while the other player uses the 'u' and 'k' keys for control. The ball's speed increases with each hit, adding to the challenge. The physical simulation engine varies the ball's speed based on the hit location on the paddle, mimicking real-world physics. The CMD button on the controller is used for pausing and resuming the game. A timer adds urgency to the gameplay, with a visual cue when it reaches halfway. When the timer counts down to zero, the game will be ended.
 
 ## Getting Started
 The simulation environment and toolchain have been setup to run within a Docker container. The directions assume that you have git, Docker, X-11 support and a bash shell on your machine. If you are running on Windows and wish to use PowerShell follow the directions [here](docs/powershell.md). 
 
-### Clone Repository
-The code is available on github. Assuming you have ssh setup for git start by cloning the repository with the following command:
+If you have the following problem
 ```
-git clone git@github.com:UCDClassNitta/riscv-console.git
+xhost:  unable to open display "/private/tmp/com.apple.launchd.hvM8yt00vq/org.xquartz:0"
 ```
-You should see something like:
+try running this command
 ```
-Cloning into 'riscv-console'...
-remote: Enumerating objects: 176, done.
-remote: Counting objects: 100% (176/176), done.
-remote: Compressing objects: 100% (111/111), done.
-remote: Total 176 (delta 71), reused 163 (delta 63), pack-reused 0
-Receiving objects: 100% (176/176), 694.17 KiB | 3.71 MiB/s, done.
-Resolving deltas: 100% (71/71), done.
+xhost +localhost
 ```
 
 ### Launch Docker Container
@@ -44,6 +44,19 @@ root@fedcba9876543210:/code#
 
 ### Verify RISC-V Tools
 The next step is to build the RISC-V example program to test on the simulator. Change directory into `/code/riscv-example` and then run `make`. This should build an example that will put `Hello World!` on the simulator screen and have an `X` that will move based upon the controller direction buttons. 
+
+### Compile the Firmware and Cartridge
+The firmware is located in `/code/firmware` folder. You can compile it with
+```
+make clean && make
+```
+
+**Note:** If you are running ported versions, you don't have to compile. The compiled file is already included. 
+
+The cartridge is located in `/code/cartridge` folder. You can compile it with
+```
+make clean && make
+```
 
 ### Launch Simulator
 You can launch the simulator with the full path using the command:
