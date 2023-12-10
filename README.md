@@ -1,7 +1,14 @@
-
 # Pong Game
 
 To showcase the strengths of our operating system, we have implemented the classic game, Pong, as our app. In this game, two players control paddles to bounce a ball back and forth. 
+| <img width="224" alt="image" src="https://github.com/tobyyu007/riscv-console/assets/39978173/bd26da31-73f8-4a91-bf78-f219f29b28f0"> | <img width="224" alt="image" src="https://github.com/tobyyu007/riscv-console/assets/39978173/0a1ce002-024a-4fab-9c0a-d0b3b20ab08a">|
+|:--------------------------:|:----------------------------------------:|
+| Game Start                 | Gameplay                                 |
+| <img width="224" alt="image" src="https://github.com/tobyyu007/riscv-console/assets/39978173/8924c844-1877-45c5-9a3c-63e4a359abbc">| <img width="224" alt="image" src="https://github.com/tobyyu007/riscv-console/assets/39978173/a6bbb97f-09de-4b58-bdbc-7c60cbeba6bf"> |
+| Game Pause                 | Gameplay when passes half the time limit |
+|<img width="224" alt="image" src="https://github.com/tobyyu007/riscv-console/assets/39978173/4498997d-5f28-4b83-ab21-7f265eacff28">| <img width="224" alt="image" src="https://github.com/tobyyu007/riscv-console/assets/39978173/8db85f54-fcf7-4bdb-a8a0-87fcfad9a053">|
+| Game Ends with player wins | Game Ends with over time                 |
+
 
 ## Reference Documents
 
