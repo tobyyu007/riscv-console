@@ -15,15 +15,17 @@ In our Pong game, players aim to block the ball with their paddles and score aga
 
 
 ## Getting Started
-1. Be sure that you run the latest simulator files that is provided on the professor's [repository](https://github.com/UCDClassNitta/riscv-console). You can also get it with this commend:
-    ```
-    git clone git@github.com:UCDClassNitta/riscv-console.git
-    ```
-2. Make sure you are running the latest docker version for the RISC-V Docker image `cjnitta/riscv_base`. If you are not, you should remove the docker image and run the command:
-    ```
-    ./rvconsole.sh
-    ```
-    to get the latest image.
+### Simulator Files
+Be sure that you run the latest simulator files that is provided on the professor's [repository](https://github.com/UCDClassNitta/riscv-console). You can also get it with this commend:
+```
+git clone git@github.com:UCDClassNitta/riscv-console.git
+```
+### Docker Image
+Make sure you are running the latest docker version for the RISC-V Docker image `cjnitta/riscv_base`. If you are not, you should remove the docker image and run the command:
+```
+./rvconsole.sh
+```
+to get the latest image.
 
 ### Launch Docker Container
 Change directories into the riscv-console and run the console launch script with the command:
